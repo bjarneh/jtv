@@ -1,3 +1,7 @@
+// Copyright 2014 bjarneh@ifi.uio.no. All rights reserved. 
+// Use of this source code is governed by a BSD-style 
+// license that can be found in the LICENSE file. 
+
 package com.github.bjarneh.jtv;
 
 // std
@@ -46,7 +50,7 @@ import com.github.bjarneh.utilz.res;
  * @author bjarneh@ifi.uio.no
  */
 
-public class JTV extends JPanel {
+public class Jtv extends JPanel {
 
 
     private static JTree tree;
@@ -63,14 +67,14 @@ public class JTV extends JPanel {
 
 
     private static final Logger log =
-        Logger.getLogger( JTV.class.getName() );
+        Logger.getLogger( Jtv.class.getName() );
 
 
     // Perhaps that getModifiers stuff should be used instead?
     boolean CTRL_IS_DOWN = false;
 
 
-    public JTV() {
+    public Jtv() {
         super(new GridLayout(1,0));
         addTree();
     }
@@ -204,7 +208,7 @@ public class JTV extends JPanel {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Add content to the window.
-        frame.add(new JTV());
+        frame.add(new Jtv());
 
         // Display the window.
         frame.pack();
