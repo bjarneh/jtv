@@ -85,6 +85,7 @@ public class Jtv extends JPanel {
 
         DefaultMutableTreeNode top = 
 ///             getTree(new File("/home/bjarne/mercurial/mine/cop/src"));
+///             getTree(new File("/home/bjarne/local/yacy/source"));
             getTree(new File("src"));
 
         // Create a tree with single selection.
@@ -160,7 +161,6 @@ public class Jtv extends JPanel {
     }
 
 
-
     private void toggleMaximize(){
         int extendedState = topFrame.getExtendedState();
         if( (extendedState & JFrame.MAXIMIZED_BOTH) > 0 ){
@@ -171,15 +171,49 @@ public class Jtv extends JPanel {
     }
 
 
+    private void getBigger(){
+        int width  = topFrame.getWidth();
+        int height = topFrame.getHeight();
+        topFrame.setSize( width + dw, height + dh );
+    }
+    
+
+    private void getSmaller(){
+        int width  = topFrame.getWidth();
+        int height = topFrame.getHeight();
+        if( height > 100 ) { height -= dh; }
+        if( width > 100 ){ width -= dw; }
+        topFrame.setSize( width, height );
+    }
+
+    
+    private void openFile( DefaultMutableTreeNode node ){
+
+        String cmd = 
+            String.format("xterm -geometry 80x35 -bw 0 -e  vim %s",
+                node.getUserObject());
+
+        // System.out.printf(" cmd: '%s'\n", cmd);
+        // xterm -geometry 80x35 -bw 0 -e  vim %s &
+        try{
+
+            Runtime rt = Runtime.getRuntime();
+            rt.exec( cmd );
+
+        }catch(Exception e){
+            log.log(Level.SEVERE, e.getMessage(), e); 
+        }
+
+    }
+
+
     private static void setLookAndFeel(){
 
         try {
             UIManager.setLookAndFeel(
                     UIManager.getCrossPlatformLookAndFeelClassName());
-///             ///   UIManager.getSystemLookAndFeelClassName());
-
+///                     UIManager.getSystemLookAndFeelClassName());
 ///             MetalLookAndFeel.setCurrentTheme(new OceanTheme());
-
 ///             UIManager.setLookAndFeel(new MetalLookAndFeel());
             UIManager.put("Tree.collapsedIcon",
                     res.get().getIcon("img/collapsed.png"));
@@ -219,22 +253,6 @@ public class Jtv extends JPanel {
     }
 
 
-    private void getBigger(){
-        int width  = topFrame.getWidth();
-        int height = topFrame.getHeight();
-        topFrame.setSize( width + dw, height + dh );
-    }
-    
-
-    private void getSmaller(){
-        int width  = topFrame.getWidth();
-        int height = topFrame.getHeight();
-        if( height > 100 ) { height -= dh; }
-        if( width > 100 ){ width -= dw; }
-        topFrame.setSize( width, height );
-    }
-
-
     public static void main(String[] args) {
         // Schedule a job for the event dispatch thread:
         // creating and showing this application's GUI.
@@ -254,10 +272,13 @@ public class Jtv extends JPanel {
             int selRow       = tree.getRowForLocation(e.getX(), e.getY());
             TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
 
-            //System.out.printf(" selPath: %s\n", selPath);
             if( selRow != -1 && e.getClickCount() == 2 ) {
-                System.out.printf(" open[m]: %s\n",
-                    (DefaultMutableTreeNode) selPath.getLastPathComponent());
+                DefaultMutableTreeNode node = 
+                    (DefaultMutableTreeNode) selPath.getLastPathComponent();
+                if( node.isLeaf() ){
+                    e.consume();
+                    openFile( node );
+                }
             }
         }
     };
@@ -270,13 +291,6 @@ public class Jtv extends JPanel {
 
             current = (DefaultMutableTreeNode)
                 tree.getLastSelectedPathComponent();
-
-            /*
-            if (current != null){
-                Object nodeObj = current.getUserObject();
-                System.out.printf(" what: %s (%s)\n", current, nodeObj);
-            }
-            */
         }
     };
 
@@ -293,25 +307,25 @@ public class Jtv extends JPanel {
         void enterPressed(KeyEvent e){
             if( current != null ) {
                 if( current.isLeaf() ) {
-                    System.out.printf(" open[k]: %s\n", current);
+                    openFile( current );
                 }else{
-                    //TreePath path = tree.getSelectionPath();
                     if( tree.isCollapsed( tree.getSelectionPath() ) ){
                         expandAll( current );
                     }else{
                         collapseAll( current );
-                        //tree.collapsePath( path );
                     }
                 }
                 e.consume();
             }
         }
 
+
         void perhapsMaximize(){
             if( CTRL_IS_DOWN ){
                 toggleMaximize();
             }
         }
+
 
         void quit(boolean sure){
 
