@@ -85,7 +85,10 @@ public class Jtv extends JPanel {
     public void addTree(DefaultMutableTreeNode root){
 
         tree = new JTree(root);
-        //tree.setRootVisible(false); set this if more than one dir is given
+
+        if( root.getUserObject() == null ){
+           tree.setRootVisible(false); //set this if more than one dir is given
+        }
         tree.getSelectionModel().setSelectionMode
                 (TreeSelectionModel.SINGLE_TREE_SELECTION);
         // Display some better looking icons

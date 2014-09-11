@@ -2,6 +2,7 @@ package com.github.bjarneh.jtv;
 
 import java.io.File;
 import javax.swing.SwingUtilities;
+import java.util.ArrayList;
 
 
 public class Main {
@@ -18,15 +19,52 @@ public class Main {
     }
 
 
-    public static void main(String[] args) {
+    private static JtvTreeNode buildTree(String ... args){
 
-        String dir = "src";
+        File tmp;
+        ArrayList<File> dirs = new ArrayList<File>();
 
-        if( args.length > 0 ){
-            dir = args[0];
+        for(String a: args){
+            tmp = new File(a);
+            if( tmp.isDirectory() ){
+                dirs.add( tmp );
+            }else{
+                // log a warning
+            }
         }
 
-        final JtvTreeNode root = getTree(new File(dir));
+        if( dirs.size() == 1 ){
+
+            return getTree( dirs.get(0) );
+
+        } else if ( dirs.size() > 1 ) {
+
+            JtvTreeNode dummy = new JtvTreeNode();
+
+            for(File f: dirs){
+                dummy.add( getTree( f ) );
+            }
+
+            return dummy;
+
+        } else {
+
+            return null;
+
+        }
+
+    }
+
+
+    public static void main(String[] args) {
+
+        String[] dirs = {"src"};
+
+        if( args.length > 0 ){
+            dirs = args;
+        }
+
+        final JtvTreeNode root = buildTree(dirs); //getTree(new File(dir));
 
         // This adds new icons for the tree view
         Jtv.setLookAndFeel();
