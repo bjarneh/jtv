@@ -11,6 +11,11 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Entry point for the application.
+ *
+ * @author bjarneh@ifi.uio.no
+ */
 
 public class Main {
 

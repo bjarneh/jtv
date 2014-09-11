@@ -7,6 +7,11 @@ package com.github.bjarneh.jtv;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Execute external commands.
+ * 
+ * @author bjarneh@ifi.uio.no
+ */
 //TODO FIXME ProcessBuilder
 public class JtvCmd {
 

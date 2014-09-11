@@ -39,7 +39,7 @@ import com.github.bjarneh.utilz.res;
 
 
 /**
- * Trying out some Java GUI (tree-view).
+ * The tree-view and listeners are placed in this file.
  * 
  * @author bjarneh@ifi.uio.no
  */
@@ -266,7 +266,7 @@ public class Jtv extends JPanel {
     };
 
 
-    // Listen to events to track selected tree view element
+    // Listen to a few key events
     final KeyListener keyListener = new KeyAdapter() {
 
 
@@ -312,6 +312,22 @@ public class Jtv extends JPanel {
         }
 
 
+        void perhapsBigger(KeyEvent e){
+            if( CTRL_IS_DOWN ){
+                getBigger();
+                e.consume();
+            }
+        }
+
+
+        void perhapsSmaller(KeyEvent e){
+            if( CTRL_IS_DOWN ){
+                getSmaller();
+                e.consume();
+            }
+        }
+
+
         void quit(boolean sure){
 
             if( CTRL_IS_DOWN ){
@@ -339,8 +355,8 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_Q      :
                 case KeyEvent.VK_W      : quit(true); break;
                 case KeyEvent.VK_C      : quit(false); break;
-                case KeyEvent.VK_PLUS   : getBigger(); break;
-                case KeyEvent.VK_MINUS  : getSmaller(); break;
+                case KeyEvent.VK_PLUS   : perhapsBigger(e); break;
+                case KeyEvent.VK_MINUS  : perhapsSmaller(e); break;
                 case KeyEvent.VK_M      : perhapsMaximize(); break;
                 case KeyEvent.VK_N      : perhapsNormalize(); break;
                 case KeyEvent.VK_0      : perhapsResetYX(); break;
