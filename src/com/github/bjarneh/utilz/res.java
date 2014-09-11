@@ -26,11 +26,11 @@ public class res {
     }
 
 
-    public URL getUrl(String ref){
+    public URL url(String ref){
         return this.getClass().getClassLoader().getResource(ref);
     }
 
-    public ImageIcon getIcon(String ref){
-        return new ImageIcon(getUrl(ref));
+    public ImageIcon icon(String ref){
+        return new ImageIcon(url(ref));
     }
 }

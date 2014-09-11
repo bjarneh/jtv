@@ -8,11 +8,17 @@ package com.github.bjarneh.jtv;
 import java.net.URL;
 import java.io.File;
 import java.io.IOException;
+import java.awt.Image;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyAdapter;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -20,25 +26,14 @@ import javax.swing.UIManager;
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.ImageIcon;
-
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.TreePath;
-
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.KeyListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyAdapter;
-
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.OceanTheme;
-
 
 // local
 import com.github.bjarneh.utilz.res;
@@ -56,14 +51,14 @@ public class Jtv extends JPanel {
     private static JTree tree;
     private static JFrame topFrame;
 
-    private static int dw = 20; // in[de]crease in width on ctrl+[-]
-    private static int dh = 30; // in[de]crease in height on ctrl+[-]
+    public static int dw = 25; // in[de]crease in width on ctrl+[-]
+    public static int dh = 30; // in[de]crease in height on ctrl+[-]
 
-    private static int minWidth   = 170; // decrease cannot go past this
-    private static int minHeight  = 400; // decrease cannot go past this
+    public static int minWidth   = 170; // decrease cannot go past this
+    public static int minHeight  = 400; // decrease cannot go past this
 
-    private static int initWidth  = 280; 
-    private static int initHeight = 700; 
+    public static int initWidth  = 280; 
+    public static int initHeight = 700; 
 
 
     private DefaultMutableTreeNode current;
@@ -86,8 +81,9 @@ public class Jtv extends JPanel {
 
         tree = new JTree(root);
 
+        // More than one dir is given
         if( root.getUserObject() == null ){
-           tree.setRootVisible(false); //set this if more than one dir is given
+           tree.setRootVisible(false);
         }
         tree.getSelectionModel().setSelectionMode
                 (TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -98,7 +94,6 @@ public class Jtv extends JPanel {
         tree.addTreeSelectionListener(markListener);
         tree.addMouseListener(mouseListener);
         tree.addKeyListener(keyListener);
-
 
         // Create the scroll pane and add the tree to it. 
         JScrollPane scrollPane = new JScrollPane(tree);
@@ -159,9 +154,11 @@ public class Jtv extends JPanel {
 
 
     private void getBigger(){
-        int width  = topFrame.getWidth();
-        int height = topFrame.getHeight();
-        topFrame.setSize( width + dw, height + dh );
+        if( (topFrame.getExtendedState() & JFrame.MAXIMIZED_BOTH) == 0 ){
+            int width  = topFrame.getWidth();
+            int height = topFrame.getHeight();
+            topFrame.setSize( width + dw, height + dh );
+        }
     }
     
 
@@ -175,6 +172,7 @@ public class Jtv extends JPanel {
 
 
     private void resetSize(){
+        topFrame.setExtendedState( JFrame.NORMAL );
         topFrame.setSize( initWidth, initHeight );
     }
 
@@ -210,9 +208,9 @@ public class Jtv extends JPanel {
 ///             MetalLookAndFeel.setCurrentTheme(new OceanTheme());
 ///             UIManager.setLookAndFeel(new MetalLookAndFeel());
             UIManager.put("Tree.collapsedIcon",
-                    res.get().getIcon("img/collapsed.png"));
+                    res.get().icon("img/collapsed.png"));
             UIManager.put("Tree.expandedIcon",
-                    res.get().getIcon("img/expanded.png"));
+                    res.get().icon("img/expanded.png"));
 
         } catch (Exception e) {
             log.log(Level.SEVERE, e.getMessage(), e); 
@@ -226,6 +224,7 @@ public class Jtv extends JPanel {
         // Create and set up the window.
         JFrame frame = new JFrame("jtv");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setIconImage(res.get().icon("img/ninja.png").getImage());
 
         frame.add(this);
 

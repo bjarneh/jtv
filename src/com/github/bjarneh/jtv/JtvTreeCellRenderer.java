@@ -23,8 +23,8 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
 
         super();
 
-        setOpenIcon(res.get().getIcon("img/dir_open.png"));
-        setClosedIcon(res.get().getIcon("img/dir_close.png"));
+        setOpenIcon(res.get().icon("img/dir_open.png"));
+        setClosedIcon(res.get().icon("img/dir_close.png"));
         setLeafIcon(null);
 
     }

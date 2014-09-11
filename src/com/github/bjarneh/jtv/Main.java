@@ -1,11 +1,22 @@
+// Copyright 2014 bjarneh@ifi.uio.no. All rights reserved. 
+// Use of this source code is governed by a BSD-style 
+// license that can be found in the LICENSE file. 
+
 package com.github.bjarneh.jtv;
 
+// std
 import java.io.File;
 import javax.swing.SwingUtilities;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class Main {
+
+
+    private static final Logger log =
+        Logger.getLogger( Main.class.getName() );
 
 
     private static JtvTreeNode getTree(File file){
@@ -29,7 +40,7 @@ public class Main {
             if( tmp.isDirectory() ){
                 dirs.add( tmp );
             }else{
-                // log a warning
+                log.info("This is not a directory '"+ a +"'");
             }
         }
 
@@ -64,23 +75,22 @@ public class Main {
             dirs = args;
         }
 
-        final JtvTreeNode root = buildTree(dirs); //getTree(new File(dir));
+        final JtvTreeNode root = buildTree(dirs);
 
-        // This adds new icons for the tree view
-        Jtv.setLookAndFeel();
+        if( root != null ){
 
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                Jtv jtv = new Jtv();
-                jtv.addTree(root);
-                jtv.createAndShowGUI();
-            }
-        });
+            // Add new icons for the tree view
+            Jtv.setLookAndFeel();
+
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    Jtv jtv = new Jtv();
+                    jtv.addTree(root);
+                    jtv.createAndShowGUI();
+                }
+            });
+        }
+
     }
-
-///         DefaultMutableTreeNode top = 
-///             ///  getTree(new File("/home/bjarne/mercurial/mine/cop/src"));
-///             ///  getTree(new File("/home/bjarne/local/yacy/source"));
-///             getTree(new File("src"));
 
 }
