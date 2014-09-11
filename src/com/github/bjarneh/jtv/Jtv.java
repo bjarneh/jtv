@@ -59,6 +59,9 @@ public class Jtv extends JPanel {
     private static int dw = 20; // in[de]crease in width on ctrl+[-]
     private static int dh = 30; // in[de]crease in height on ctrl+[-]
 
+    private static int minWidth   = 170; // decrease cannot go past this
+    private static int minHeight  = 400; // decrease cannot go past this
+
     private static int initWidth  = 280; 
     private static int initHeight = 700; 
 
@@ -181,9 +184,18 @@ public class Jtv extends JPanel {
     private void getSmaller(){
         int width  = topFrame.getWidth();
         int height = topFrame.getHeight();
-        if( height > 100 ) { height -= dh; }
-        if( width > 100 ){ width -= dw; }
+        if( height > minHeight ) { height -= dh; }
+        if( width > minWidth ){ width -= dw; }
         topFrame.setSize( width, height );
+    }
+
+
+    private void resetSize(){
+        topFrame.setSize( initWidth, initHeight );
+    }
+
+    private void resetPosition(){
+        topFrame.setLocation( 0, 0 );
     }
 
     
@@ -192,13 +204,9 @@ public class Jtv extends JPanel {
         String cmd = 
             String.format("xterm -geometry 80x35 -bw 0 -e  vim %s",
                 node.getUserObject());
-
-        // System.out.printf(" cmd: '%s'\n", cmd);
-        // xterm -geometry 80x35 -bw 0 -e  vim %s &
         try{
 
-            Runtime rt = Runtime.getRuntime();
-            rt.exec( cmd );
+            JtvCmd.run( cmd );
 
         }catch(Exception e){
             log.log(Level.SEVERE, e.getMessage(), e); 
@@ -327,6 +335,20 @@ public class Jtv extends JPanel {
         }
 
 
+        void perhapsNormalize(){
+            if( CTRL_IS_DOWN ){
+                resetSize();
+            }
+        }
+
+
+        void perhapsResetYX(){
+            if( CTRL_IS_DOWN ){
+                resetPosition();
+            }
+        }
+
+
         void quit(boolean sure){
 
             if( CTRL_IS_DOWN ){
@@ -357,6 +379,8 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_PLUS   : getBigger(); break;
                 case KeyEvent.VK_MINUS  : getSmaller(); break;
                 case KeyEvent.VK_M      : perhapsMaximize(); break;
+                case KeyEvent.VK_N      : perhapsNormalize(); break;
+                case KeyEvent.VK_0      : perhapsResetYX(); break;
             }
 
         }
