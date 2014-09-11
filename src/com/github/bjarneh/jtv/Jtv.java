@@ -79,26 +79,19 @@ public class Jtv extends JPanel {
 
     public Jtv() {
         super(new GridLayout(1,0));
-        addTree();
     }
 
 
-    //TODO FIXME
-    private void addTree(){
+    public void addTree(DefaultMutableTreeNode root){
 
-        DefaultMutableTreeNode top = 
-///             getTree(new File("/home/bjarne/mercurial/mine/cop/src"));
-///             getTree(new File("/home/bjarne/local/yacy/source"));
-            getTree(new File("src"));
-
-        // Create a tree with single selection.
-        tree = new JTree(top);
+        tree = new JTree(root);
+        //tree.setRootVisible(false); set this if more than one dir is given
         tree.getSelectionModel().setSelectionMode
                 (TreeSelectionModel.SINGLE_TREE_SELECTION);
         // Display some better looking icons
         tree.setCellRenderer(new JtvTreeCellRenderer());
 
-        // Add listeners
+        // Add listeners, perhaps the markListener can be dropped
         tree.addTreeSelectionListener(markListener);
         tree.addMouseListener(mouseListener);
         tree.addKeyListener(keyListener);
@@ -109,18 +102,6 @@ public class Jtv extends JPanel {
         scrollPane.setPreferredSize(new Dimension(initWidth, initHeight));
 
         add(scrollPane);
-
-    }
-
-
-    private JtvTreeNode getTree(File file){
-        JtvTreeNode node = new JtvTreeNode(file);
-        if( file.isDirectory() ){
-            for(File f: file.listFiles()){
-                node.add( getTree( f ));
-            }
-        }
-        return node;
     }
 
 
@@ -194,6 +175,7 @@ public class Jtv extends JPanel {
         topFrame.setSize( initWidth, initHeight );
     }
 
+
     private void resetPosition(){
         topFrame.setLocation( 0, 0 );
     }
@@ -215,9 +197,10 @@ public class Jtv extends JPanel {
     }
 
 
-    private static void setLookAndFeel(){
+    public static void setLookAndFeel(){
 
         try {
+
             UIManager.setLookAndFeel(
                     UIManager.getCrossPlatformLookAndFeelClassName());
 ///                     UIManager.getSystemLookAndFeelClassName());
@@ -235,40 +218,19 @@ public class Jtv extends JPanel {
     }
 
 
-        
-    /**
-     * Create the GUI and show it.  For thread safety,
-     * this method should be invoked from the
-     * event dispatch thread.
-     */
-    private static void createAndShowGUI() {
-
-        setLookAndFeel();
+    public void createAndShowGUI() {
 
         // Create and set up the window.
         JFrame frame = new JFrame("jtv");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Add content to the window.
-        frame.add(new Jtv());
+        frame.add(this);
 
-        // Display the window.
         frame.pack();
         frame.setVisible(true);
 
         topFrame = frame;
 
-    }
-
-
-    public static void main(String[] args) {
-        // Schedule a job for the event dispatch thread:
-        // creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
-            }
-        });
     }
 
 
