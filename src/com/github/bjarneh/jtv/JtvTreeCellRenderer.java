@@ -25,8 +25,8 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
 
         setOpenIcon(res.get().icon("img/dir_open.png"));
         setClosedIcon(res.get().icon("img/dir_close.png"));
-        setLeafIcon(null);
+        setLeafIcon(null); // to remove leaf icons from metal look and feel
 
     }
-}
 
+}

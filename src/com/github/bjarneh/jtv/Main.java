@@ -8,8 +8,8 @@ package com.github.bjarneh.jtv;
 import java.io.File;
 import javax.swing.SwingUtilities;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.swing.UIManager;
+
 
 /**
  * Entry point for the application.
@@ -20,72 +20,37 @@ import java.util.logging.Logger;
 public class Main {
 
 
-    private static final Logger log =
-        Logger.getLogger( Main.class.getName() );
+    static String help =
+
+        " jtv - java tree view                   \n"+
+        "                                        \n"+
+        " usage: jtv [OPTIONS] [DIR]             \n"+
+        "                                        \n"+
+        " options:                               \n"+
+        "                                        \n"+
+        "  -h --help : print this menu and exit  \n"+
+        "  -l --list : list available themes     \n"+
+        "                                        \n"+
+        "                                        \n";
 
 
-    private static JtvTreeNode getTree(File file){
-        JtvTreeNode node = new JtvTreeNode(file);
-        if( file.isDirectory() ){
-            for(File f: file.listFiles()){
-                node.add( getTree( f ));
-            }
-        }
-        return node;
-    }
+    static String[] dirs = {"src"};
 
 
-    private static JtvTreeNode buildTree(String ... args){
-
-        File tmp;
-        ArrayList<File> dirs = new ArrayList<File>();
-
-        for(String a: args){
-            tmp = new File(a);
-            if( tmp.isDirectory() ){
-                dirs.add( tmp );
-            }else{
-                log.info("This is not a directory '"+ a +"'");
-            }
-        }
-
-        if( dirs.size() == 1 ){
-
-            return getTree( dirs.get(0) );
-
-        } else if ( dirs.size() > 1 ) {
-
-            JtvTreeNode dummy = new JtvTreeNode();
-
-            for(File f: dirs){
-                dummy.add( getTree( f ) );
-            }
-
-            return dummy;
-
-        } else {
-
-            return null;
-
-        }
-
-    }
 
 
     public static void main(String[] args) {
-
-        String[] dirs = {"src"};
 
         if( args.length > 0 ){
             dirs = args;
         }
 
-        final JtvTreeNode root = buildTree(dirs);
+        final JtvTreeNode root = Jtv.buildTree(dirs);
 
         if( root != null ){
 
             // Add new icons for the tree view
-            Jtv.setLookAndFeel();
+            Jtv.setLookAndFeel(Jtv.regularStyle);
 
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
@@ -94,6 +59,18 @@ public class Main {
                     jtv.createAndShowGUI();
                 }
             });
+        }
+    }
+
+
+    public static void listLookAndFeel(){
+
+        UIManager.LookAndFeelInfo[] looks =
+            UIManager.getInstalledLookAndFeels();
+
+        for(UIManager.LookAndFeelInfo look : looks) {
+            System.out.printf("%10s : %s\n",
+                    look.getName(),look.getClassName());
         }
 
     }

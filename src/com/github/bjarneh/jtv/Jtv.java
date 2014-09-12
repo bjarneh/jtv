@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.awt.event.MouseEvent;
@@ -25,6 +26,7 @@ import javax.swing.UIManager;
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.ImageIcon;
+import javax.swing.LookAndFeel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeSelectionModel;
@@ -46,9 +48,8 @@ import com.github.bjarneh.utilz.res;
 
 public class Jtv extends JPanel {
 
-
-    private static JTree tree;
-    private static JFrame topFrame;
+    private JTree tree;
+    private JFrame topFrame;
 
     public static int dw = 25; // in[de]crease in width on ctrl+[-]
     public static int dh = 30; // in[de]crease in height on ctrl+[-]
@@ -60,11 +61,13 @@ public class Jtv extends JPanel {
     public static int initHeight = 700; 
 
 
+    public static final String regularStyle = 
+        UIManager.getCrossPlatformLookAndFeelClassName();
+
     private DefaultMutableTreeNode current;
 
 
-    private static final Logger log =
-        Logger.getLogger( Jtv.class.getName() );
+    private static final Logger log = Logger.getLogger(Jtv.class.getName());
 
 
     // Perhaps that getModifiers stuff should be used instead?
@@ -86,8 +89,15 @@ public class Jtv extends JPanel {
         }
         tree.getSelectionModel().setSelectionMode
                 (TreeSelectionModel.SINGLE_TREE_SELECTION);
-        // Display some better looking icons
-        tree.setCellRenderer(new JtvTreeCellRenderer());
+
+        LookAndFeel lookAndFeel = UIManager.getLookAndFeel();
+
+        // Display some better looking icons for Metal
+        if( lookAndFeel != null &&
+            lookAndFeel.getClass().getName().equals( regularStyle ) )
+        {
+            tree.setCellRenderer(new JtvTreeCellRenderer());
+        }
 
         // Add listeners, perhaps the markListener can be dropped
         tree.addTreeSelectionListener(markListener);
@@ -99,6 +109,55 @@ public class Jtv extends JPanel {
         scrollPane.setPreferredSize(new Dimension(initWidth, initHeight));
 
         add(scrollPane);
+    }
+
+
+    private static JtvTreeNode getTree(File file){
+        JtvTreeNode node = new JtvTreeNode(file);
+        if( file.isDirectory() ){
+            for(File f: file.listFiles()){
+                node.add( getTree( f ));
+            }
+        }
+        return node;
+    }
+
+
+    public static JtvTreeNode buildTree(String ... args){
+
+        File tmp;
+        ArrayList<File> dirs = new ArrayList<File>();
+
+        for(String a: args){
+
+            tmp = new File(a);
+
+            if( tmp.isDirectory() ){
+                dirs.add( tmp );
+            }else{
+                log.info("This is not a directory '"+ a +"'");
+            }
+        }
+
+        if( dirs.size() == 1 ){
+
+            return getTree( dirs.get(0) );
+
+        } else if ( dirs.size() > 1 ) {
+
+            JtvTreeNode dummy = new JtvTreeNode();
+
+            for(File f: dirs){
+                dummy.add( getTree( f ) );
+            }
+
+            return dummy;
+
+        } else {
+
+            return null;
+
+        }
     }
 
 
@@ -183,6 +242,21 @@ public class Jtv extends JPanel {
     
     private void openFile( DefaultMutableTreeNode node ){
 
+        File file = (File) node.getUserObject();
+
+        if( file.isDirectory() ){
+            return;
+        }
+
+        // Path's have changed, notify user.
+        if( !file.isFile() ){
+            JOptionPane.showMessageDialog(topFrame,
+                    "Not a valid path, refresh [F5]", "Info", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+
         String cmd = 
             String.format("xterm -geometry 80x35 -bw 0 -e  vim %s",
                 node.getUserObject());
@@ -197,19 +271,22 @@ public class Jtv extends JPanel {
     }
 
 
-    public static void setLookAndFeel(){
+    public static void setLookAndFeel(String style){
 
         try {
 
-            UIManager.setLookAndFeel(
-                    UIManager.getCrossPlatformLookAndFeelClassName());
-///                     UIManager.getSystemLookAndFeelClassName());
-///             MetalLookAndFeel.setCurrentTheme(new OceanTheme());
-///             UIManager.setLookAndFeel(new MetalLookAndFeel());
-            UIManager.put("Tree.collapsedIcon",
-                    res.get().icon("img/collapsed.png"));
-            UIManager.put("Tree.expandedIcon",
-                    res.get().icon("img/expanded.png"));
+            UIManager.setLookAndFeel( style );
+
+            if( style.equals( regularStyle ) ){
+
+                UIManager.put("Tree.collapsedIcon",
+                        res.get().icon("img/collapsed.png"));
+                UIManager.put("Tree.expandedIcon",
+                        res.get().icon("img/expanded.png"));
+                UIManager.put("Tree.closedIcon",
+                        res.get().icon("img/dir_close.png"));
+
+            }
 
         } catch (Exception e) {
             log.log(Level.SEVERE, e.getMessage(), e); 
@@ -291,23 +368,26 @@ public class Jtv extends JPanel {
         }
 
 
-        void perhapsMaximize(){
+        void perhapsMaximize(KeyEvent e){
             if( CTRL_IS_DOWN ){
                 toggleMaximize();
+                e.consume();
             }
         }
 
 
-        void perhapsNormalize(){
+        void perhapsNormalize(KeyEvent e){
             if( CTRL_IS_DOWN ){
                 resetSize();
+                e.consume();
             }
         }
 
 
-        void perhapsResetYX(){
+        void perhapsResetYX(KeyEvent e){
             if( CTRL_IS_DOWN ){
                 resetPosition();
+                e.consume();
             }
         }
 
@@ -323,6 +403,18 @@ public class Jtv extends JPanel {
         void perhapsSmaller(KeyEvent e){
             if( CTRL_IS_DOWN ){
                 getSmaller();
+                e.consume();
+            }
+        }
+
+
+        void perhapsTerm(KeyEvent e){
+            if( CTRL_IS_DOWN ){
+                try{
+                    JtvCmd.run("xterm");
+                }catch(Exception ex){
+                    log.log(Level.SEVERE, ex.getMessage(), ex);
+                }
                 e.consume();
             }
         }
@@ -357,9 +449,11 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_C      : quit(false); break;
                 case KeyEvent.VK_PLUS   : perhapsBigger(e); break;
                 case KeyEvent.VK_MINUS  : perhapsSmaller(e); break;
-                case KeyEvent.VK_M      : perhapsMaximize(); break;
-                case KeyEvent.VK_N      : perhapsNormalize(); break;
-                case KeyEvent.VK_0      : perhapsResetYX(); break;
+                case KeyEvent.VK_M      : perhapsMaximize(e); break;
+                case KeyEvent.VK_N      : perhapsNormalize(e); break;
+                case KeyEvent.VK_0      : perhapsResetYX(e); break;
+                case KeyEvent.VK_X      : perhapsTerm(e); break;
+///                 case KeyEvent.VK_F5     : refreshTree(e); break;
             }
 
         }
