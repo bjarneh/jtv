@@ -7,9 +7,12 @@ package com.github.bjarneh.jtv;
 // std
 import java.io.File;
 import javax.swing.SwingUtilities;
+import java.util.HashMap;
 import java.util.ArrayList;
 import javax.swing.UIManager;
 
+// libb
+import com.github.bjarneh.parse.options.Getopt;
 
 /**
  * Entry point for the application.
@@ -22,35 +25,61 @@ public class Main {
 
     static String help =
 
-        " jtv - java tree view                   \n"+
-        "                                        \n"+
-        " usage: jtv [OPTIONS] [DIR]             \n"+
-        "                                        \n"+
-        " options:                               \n"+
-        "                                        \n"+
-        "  -h --help : print this menu and exit  \n"+
-        "  -l --list : list available themes     \n"+
-        "                                        \n"+
-        "                                        \n";
+        " jtv - java tree view                    \n"+
+        "                                         \n"+
+        " usage: jtv [OPTIONS] [DIR]              \n"+
+        "                                         \n"+
+        " options:                                \n"+
+        "                                         \n"+
+        "  -h --help  : print this menu and exit  \n"+
+        "  -l --list  : list available themes     \n"+
+        "  -t --theme : set alternative theme     \n";
 
 
     static String[] dirs = {"src"};
-
-
+    static String theme  = Jtv.regularStyle;
 
 
     public static void main(String[] args) {
 
-        if( args.length > 0 ){
-            dirs = args;
+
+        Getopt getopt = new Getopt();
+        getopt.addBoolOption("-h -help --help");
+        getopt.addBoolOption("-l -list --list");
+        getopt.addFancyStrOption("-t --theme");
+
+
+        String[] rest = getopt.parse(args);
+
+
+        if( getopt.isSet("-help") ){
+            System.out.printf("\n%s\n", help);
+            System.exit(0);
         }
+
+        if( getopt.isSet("-list") ){
+            listLookAndFeel();
+            System.exit(0);
+        }
+
+        if( getopt.isSet("-theme") ){
+            updateTheme( getopt.get("-theme") );
+        }
+
+        //System.out.printf(" %s\n", getopt);
+
+        if( rest.length > 0 ){
+            dirs = rest;
+        }
+
 
         final JtvTreeNode root = Jtv.buildTree(dirs);
 
+
         if( root != null ){
 
-            // Add new icons for the tree view
-            Jtv.setLookAndFeel(Jtv.regularStyle);
+            // We can do some basic styling
+            Jtv.setLookAndFeel( theme );
 
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
@@ -63,7 +92,7 @@ public class Main {
     }
 
 
-    public static void listLookAndFeel(){
+    private static void listLookAndFeel(){
 
         UIManager.LookAndFeelInfo[] looks =
             UIManager.getInstalledLookAndFeels();
@@ -74,5 +103,28 @@ public class Main {
         }
 
     }
+
+
+    private static void updateTheme(String val){
+
+        HashMap<String,String> themes = new HashMap<String,String>();
+
+        UIManager.LookAndFeelInfo[] looks =
+            UIManager.getInstalledLookAndFeels();
+
+        for(UIManager.LookAndFeelInfo look : looks) {
+            themes.put( look.getName(), look.getClassName() );
+            themes.put( look.getClassName(), look.getClassName() );
+        }
+
+        if( !themes.containsKey( val ) ){
+            System.err.printf("[ERROR] unknown theme: %s\n", val);
+            System.exit(1);
+        }
+
+        theme = themes.get( val );
+    }
+
+    
 
 }

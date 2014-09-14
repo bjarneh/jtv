@@ -36,7 +36,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.OceanTheme;
 
-// local
+// libb
 import com.github.bjarneh.utilz.res;
 
 
@@ -438,6 +438,14 @@ public class Jtv extends JPanel {
         }
 
 
+        void refreshTree(KeyEvent e){
+            e.consume();
+            System.out.printf(" refresh\n");
+        }
+
+
+
+
         public void keyPressed(KeyEvent e) {
 
             switch(e.getKeyCode()){
@@ -453,7 +461,7 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_N      : perhapsNormalize(e); break;
                 case KeyEvent.VK_0      : perhapsResetYX(e); break;
                 case KeyEvent.VK_X      : perhapsTerm(e); break;
-///                 case KeyEvent.VK_F5     : refreshTree(e); break;
+                case KeyEvent.VK_F5     : refreshTree(e); break;
             }
 
         }

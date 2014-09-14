@@ -7,7 +7,7 @@ package com.github.bjarneh.jtv;
 // std
 import javax.swing.tree.DefaultTreeCellRenderer;
 
-// local
+// libb
 import com.github.bjarneh.utilz.res;
 
 
@@ -25,7 +25,7 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
 
         setOpenIcon(res.get().icon("img/dir_open.png"));
         setClosedIcon(res.get().icon("img/dir_close.png"));
-        setLeafIcon(null); // to remove leaf icons from metal look and feel
+        setLeafIcon(null); // to remove leaf icons from this look and feel
 
     }
 
