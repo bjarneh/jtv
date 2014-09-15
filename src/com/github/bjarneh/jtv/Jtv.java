@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.awt.event.MouseEvent;
@@ -59,6 +60,8 @@ public class Jtv extends JPanel {
 
     public static int initWidth  = 280; 
     public static int initHeight = 700; 
+
+    public static JtvFileCmp cmp = new JtvFileCmp();
 
 
     public static final String regularStyle = 
@@ -115,7 +118,9 @@ public class Jtv extends JPanel {
     private static JtvTreeNode getTree(File file){
         JtvTreeNode node = new JtvTreeNode(file);
         if( file.isDirectory() ){
-            for(File f: file.listFiles()){
+            File[] files = file.listFiles();
+            Arrays.sort( files, cmp );
+            for(File f: files ){
                 node.add( getTree( f ));
             }
         }
