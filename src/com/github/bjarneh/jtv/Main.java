@@ -34,7 +34,8 @@ public class Main {
         "  -h --help  : print this menu and exit  \n"+
         "  -l --list  : list available themes     \n"+
         "  -t --theme : set alternative theme     \n"+
-        "  -b --bruce : use a bruce lee logo      \n";
+        "  -d --drop  : exclude file/dirs [regex] \n"+
+        "  -b --bruce : use bruce lee as icon     \n";
 
 
     static String[] dirs = {"src"};
@@ -50,6 +51,7 @@ public class Main {
         getopt.addBoolOption("-l -list --list");
         getopt.addBoolOption("-b -bruce --bruce");
         getopt.addFancyStrOption("-t --theme");
+        getopt.addFancyStrOption("-d --drop");
 
 
         String[] rest = getopt.parse(args);
@@ -83,7 +85,7 @@ public class Main {
 
         if( root != null ){
 
-            // We can do some basic styling
+            // We have our own style, but others can be given
             Jtv.setLookAndFeel( theme );
 
             SwingUtilities.invokeLater(new Runnable() {

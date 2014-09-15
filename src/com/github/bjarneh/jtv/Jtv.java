@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Container;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -65,7 +67,8 @@ public class Jtv extends JPanel {
 
 
     public static final String regularStyle = 
-        UIManager.getCrossPlatformLookAndFeelClassName();
+        //UIManager.getCrossPlatformLookAndFeelClassName();
+        "com.github.bjarneh.jtv.JtvLookAndFeel";
 
     private DefaultMutableTreeNode current;
 
@@ -313,7 +316,8 @@ public class Jtv extends JPanel {
         }
 
         frame.add(this);
-
+        // Let window manager decide placement
+        frame.setLocationByPlatform(true);
         frame.pack();
         frame.setVisible(true);
 
