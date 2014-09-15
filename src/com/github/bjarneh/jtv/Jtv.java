@@ -295,12 +295,17 @@ public class Jtv extends JPanel {
     }
 
 
-    public void createAndShowGUI() {
+    public void createAndShowGUI(boolean useBruce) {
 
         // Create and set up the window.
         JFrame frame = new JFrame("jtv");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setIconImage(res.get().icon("img/ninja.png").getImage());
+
+        if( useBruce ){
+            frame.setIconImage(res.get().icon("img/bruce.png").getImage());
+        }else{
+            frame.setIconImage(res.get().icon("img/ninja.png").getImage());
+        }
 
         frame.add(this);
 

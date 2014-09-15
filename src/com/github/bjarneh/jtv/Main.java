@@ -33,11 +33,13 @@ public class Main {
         "                                         \n"+
         "  -h --help  : print this menu and exit  \n"+
         "  -l --list  : list available themes     \n"+
-        "  -t --theme : set alternative theme     \n";
+        "  -t --theme : set alternative theme     \n"+
+        "  -b --bruce : use a bruce lee logo      \n";
 
 
     static String[] dirs = {"src"};
     static String theme  = Jtv.regularStyle;
+    static boolean bruce = false;
 
 
     public static void main(String[] args) {
@@ -46,6 +48,7 @@ public class Main {
         Getopt getopt = new Getopt();
         getopt.addBoolOption("-h -help --help");
         getopt.addBoolOption("-l -list --list");
+        getopt.addBoolOption("-b -bruce --bruce");
         getopt.addFancyStrOption("-t --theme");
 
 
@@ -61,6 +64,8 @@ public class Main {
             listLookAndFeel();
             System.exit(0);
         }
+
+        bruce = getopt.isSet("-bruce");
 
         if( getopt.isSet("-theme") ){
             updateTheme( getopt.get("-theme") );
@@ -85,7 +90,7 @@ public class Main {
                 public void run() {
                     Jtv jtv = new Jtv();
                     jtv.addTree(root);
-                    jtv.createAndShowGUI();
+                    jtv.createAndShowGUI( bruce );
                 }
             });
         }
