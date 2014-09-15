@@ -10,12 +10,12 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * The base for our own style.
  *
- * NOTE: Currently this is only the Metal look,
- * but at some point perhaps we'll do something
- * more advanced.
+ * NOTE: Currently this is basically the Metal look,
+ * apart from a few new icons stuffed into the tree-view;
+ * but it will hopefully change to something better.
  *
  * @author bjarneh@ifi.uio.no
  */
-public class JtvLookAndFeel extends MetalLookAndFeel {
 
+public class JtvLookAndFeel extends MetalLookAndFeel {
 }

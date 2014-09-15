@@ -7,6 +7,7 @@ package com.github.bjarneh.jtv;
 // std
 import java.net.URL;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -30,6 +31,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.ImageIcon;
 import javax.swing.LookAndFeel;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeSelectionModel;
@@ -169,6 +171,13 @@ public class Jtv extends JPanel {
     }
 
 
+    //TODO FIXME stop tree from collapsing after update
+    private void nodeChanged( DefaultMutableTreeNode node ){
+        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        model.reload( node );
+    }
+
+
     private void expandAll(DefaultMutableTreeNode path){
 
         if( path == null ){
@@ -279,6 +288,22 @@ public class Jtv extends JPanel {
     }
 
 
+    private boolean deleteFile( DefaultMutableTreeNode node ){
+
+        try{
+            File file = (File) node.getUserObject();
+            file.delete();
+            DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+            model.removeNodeFromParent( node );
+            return true;
+        }catch(Exception e){
+            log.log(Level.SEVERE, e.getMessage(), e); 
+        }
+
+        return false;
+    }
+
+
     public static void setLookAndFeel(String style){
 
         try {
@@ -323,6 +348,20 @@ public class Jtv extends JPanel {
 
         topFrame = frame;
 
+    }
+
+
+    public boolean touch( File file ){
+        try{
+            if( ! file.exists() ){
+                new FileOutputStream(file).close();
+            }
+            file.setLastModified(System.currentTimeMillis());
+            return true;
+        }catch(Exception e){
+            log.log(Level.SEVERE, e.getMessage(), e);
+        }
+        return false;
     }
 
 
@@ -458,6 +497,49 @@ public class Jtv extends JPanel {
         }
 
 
+        void perhapsNewFile(KeyEvent e){
+
+            if( CTRL_IS_DOWN ){
+                if( current != null ){
+                    File parent = (File) current.getUserObject();
+                    if( parent.isDirectory() ){
+                        String fname = 
+                            JOptionPane.showInputDialog(topFrame, "Name?");
+                        if( fname != null ){
+                            File son = new File( parent, fname );
+                            if( touch( son ) ){
+                                JtvTreeNode node = new JtvTreeNode( son );
+                                current.add( node );
+                                nodeChanged( current );
+                            }
+                        }
+                        e.consume();
+                    }
+                }
+            }
+        }
+
+
+        void perhapsDeleteFile(KeyEvent e){
+
+            if( CTRL_IS_DOWN ){
+                if( current != null ){
+                    File file = (File) current.getUserObject();
+                    if( file.isFile() ){
+                        e.consume();
+                        int reply = JOptionPane.showConfirmDialog(topFrame,
+                                "Are you sure?", "Delete: "+file.getName(),
+                                JOptionPane.YES_NO_OPTION);
+                        if( reply == JOptionPane.YES_OPTION ){
+                            deleteFile( current );
+                        }
+                    }
+                }
+            }
+        }
+
+
+
 
 
         public void keyPressed(KeyEvent e) {
@@ -475,6 +557,8 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_N      : perhapsNormalize(e); break;
                 case KeyEvent.VK_0      : perhapsResetYX(e); break;
                 case KeyEvent.VK_X      : perhapsTerm(e); break;
+                case KeyEvent.VK_A      : perhapsNewFile(e); break;
+                case KeyEvent.VK_D      : perhapsDeleteFile(e); break;
                 case KeyEvent.VK_F5     : refreshTree(e); break;
             }
 
