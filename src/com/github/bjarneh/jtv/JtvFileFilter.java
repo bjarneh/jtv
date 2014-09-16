@@ -11,7 +11,7 @@ import java.util.regex.Matcher;
 public class JtvFileFilter implements FileFilter {
 
     static Pattern pattern = Pattern.compile(
-            "^(.+\\.[86]$|.+\\.class|.+\\.pyc|\\..*)$");
+            "^(.+\\.[86o]$|.+\\.class|.+\\.pyc|\\..*)$");
 
 
     public static void setFilter(String s){
