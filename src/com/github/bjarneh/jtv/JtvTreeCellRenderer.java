@@ -5,6 +5,7 @@
 package com.github.bjarneh.jtv;
 
 // std
+import java.awt.Font;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 // libb
@@ -27,6 +28,7 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
         setClosedIcon(res.get().icon("img/dir_close.png"));
         setLeafIcon(null); // to remove leaf icons from this look and feel
 
+        setFont( new Font( Font.MONOSPACED, Font.PLAIN, 12) );
     }
 
 }
