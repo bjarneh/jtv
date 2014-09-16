@@ -66,11 +66,12 @@ public class Jtv extends JPanel {
     public static int initHeight = 700; 
 
     public static JtvFileCmp cmp = new JtvFileCmp();
+    public static JtvFileFilter filter = new JtvFileFilter();
 
 
     public static final String regularStyle = 
-        //UIManager.getCrossPlatformLookAndFeelClassName();
         "com.github.bjarneh.jtv.JtvLookAndFeel";
+
 
     private DefaultMutableTreeNode current;
 
@@ -123,7 +124,7 @@ public class Jtv extends JPanel {
     private static JtvTreeNode getTree(File file){
         JtvTreeNode node = new JtvTreeNode(file);
         if( file.isDirectory() ){
-            File[] files = file.listFiles();
+            File[] files = file.listFiles( filter );
             Arrays.sort( files, cmp );
             for(File f: files ){
                 node.add( getTree( f ));

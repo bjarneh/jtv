@@ -67,6 +67,10 @@ public class Main {
             System.exit(0);
         }
 
+        if( getopt.isSet("-drop") ){
+            JtvFileFilter.setFilter( getopt.get("-drop") );
+        }
+
         bruce = getopt.isSet("-bruce");
 
         if( getopt.isSet("-theme") ){
