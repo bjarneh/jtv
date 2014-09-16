@@ -318,6 +318,11 @@ public class Jtv extends JPanel {
                         res.get().icon("img/expanded.png"));
                 UIManager.put("Tree.closedIcon",
                         res.get().icon("img/dir_close.png"));
+                UIManager.put("Tree.line", Color.GRAY);
+                UIManager.put("Tree.hash", Color.GRAY);
+                UIManager.put("Tree.selectionForeground", Color.WHITE);
+                UIManager.put("Tree.selectionBackground", Color.DARK_GRAY);
+                UIManager.put("Tree.selectionBorderColor",Color.DARK_GRAY);
 
             }
 
