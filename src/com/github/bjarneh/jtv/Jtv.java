@@ -505,6 +505,7 @@ public class Jtv extends JPanel {
         void perhapsNewFile(KeyEvent e){
 
             if( CTRL_IS_DOWN ){
+                e.consume();
                 if( current != null ){
                     File parent = (File) current.getUserObject();
                     if( parent.isDirectory() ){
@@ -518,7 +519,6 @@ public class Jtv extends JPanel {
                                 nodeChanged( current );
                             }
                         }
-                        e.consume();
                     }
                 }
             }
