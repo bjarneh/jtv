@@ -33,9 +33,9 @@ public class Main {
         "                                         \n"+
         "  -h --help  : print this menu and exit  \n"+
         "  -l --list  : list available themes     \n"+
-        "  -t --theme : set alternative theme     \n"+
-        "  -d --drop  : exclude file/dirs [regex] \n"+
-        "  -b --bruce : use bruce lee as icon     \n";
+        "  -s --stil  : set alternative theme     \n"+
+        "  -d --drop  : exclude file/dirs [regex] \n";
+///         "  -b --bruce : use bruce lee as icon     \n"
 
 
     static String[] dirs = {"src"};
@@ -50,7 +50,7 @@ public class Main {
         getopt.addBoolOption("-h -help --help");
         getopt.addBoolOption("-l -list --list");
         getopt.addBoolOption("-b -bruce --bruce");
-        getopt.addFancyStrOption("-t --theme");
+        getopt.addFancyStrOption("-s --stil");
         getopt.addFancyStrOption("-d --drop");
 
 
@@ -73,8 +73,8 @@ public class Main {
 
         bruce = getopt.isSet("-bruce");
 
-        if( getopt.isSet("-theme") ){
-            updateTheme( getopt.get("-theme") );
+        if( getopt.isSet("-stil") ){
+            updateTheme( getopt.get("-stil") );
         }
 
         //System.out.printf(" %s\n", getopt);
