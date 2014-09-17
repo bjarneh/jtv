@@ -30,7 +30,7 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
         setLeafIcon(null); // to remove leaf icons from this look and feel
 
         // FONT EXPERIMENT, GO WITH DEFAULT?
-///         setFont( new Font( Font.MONOSPACED, Font.PLAIN, 12) );
+        setFont( new Font( Font.MONOSPACED, Font.PLAIN, 12) );
 ///         setFont( new Font( Font.SERIF, Font.PLAIN, 14) );
 ///         setFont( new Font( null, Font.PLAIN, 14) );
 ///         setFont( new Font( Font.DIALOG, Font.PLAIN, 12) );
