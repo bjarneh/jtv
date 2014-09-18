@@ -6,10 +6,12 @@ package com.github.bjarneh.jtv;
 
 // std
 import java.io.File;
-import javax.swing.SwingUtilities;
 import java.util.HashMap;
 import java.util.ArrayList;
 import javax.swing.UIManager;
+import javax.swing.SwingUtilities;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 
 // libb
 import com.github.bjarneh.parse.options.Getopt;
@@ -32,10 +34,11 @@ public class Main {
         " options:                                \n"+
         "                                         \n"+
         "  -h --help  : print this menu and exit  \n"+
-        "  -l --list  : list available themes     \n"+
+        "  -l --list  : list themes/fonts to use  \n"+
         "  -s --stil  : set alternative theme     \n"+
+        "  -f --font  : set alternative font      \n"+
+        "  -z --size  : set alternative font size \n"+
         "  -d --drop  : exclude file/dirs [regex] \n";
-///         "  -b --bruce : use bruce lee as icon     \n"
 
 
     static String[] dirs = {"src"};
@@ -49,9 +52,11 @@ public class Main {
         Getopt getopt = new Getopt();
         getopt.addBoolOption("-h -help --help");
         getopt.addBoolOption("-l -list --list");
-        getopt.addBoolOption("-b -bruce --bruce");
+        getopt.addBoolOption("-b -bruce --bruce"); // hidden :-)
         getopt.addFancyStrOption("-s --stil");
         getopt.addFancyStrOption("-d --drop");
+        getopt.addFancyStrOption("-f --font");
+        getopt.addFancyStrOption("-z --size");
 
 
         String[] rest = getopt.parse(args);
@@ -63,8 +68,17 @@ public class Main {
         }
 
         if( getopt.isSet("-list") ){
+            listAvailableFonts();
             listLookAndFeel();
             System.exit(0);
+        }
+
+        if( getopt.isSet("-size") ){
+            JtvTreeCellRenderer.fontSize = getopt.getInt("-size");
+        }
+
+        if( getopt.isSet("-font") ){
+            JtvTreeCellRenderer.fontName = getopt.get("-font");
         }
 
         if( getopt.isSet("-drop") ){
@@ -74,7 +88,7 @@ public class Main {
         bruce = getopt.isSet("-bruce");
 
         if( getopt.isSet("-stil") ){
-            updateTheme( getopt.get("-stil") );
+            theme = updateTheme( getopt.get("-stil") );
         }
 
         //System.out.printf(" %s\n", getopt);
@@ -105,6 +119,8 @@ public class Main {
 
     private static void listLookAndFeel(){
 
+        System.out.println("\n[ Look and feel ]\n");
+
         UIManager.LookAndFeelInfo[] looks =
             UIManager.getInstalledLookAndFeels();
 
@@ -113,10 +129,25 @@ public class Main {
                     look.getName(),look.getClassName());
         }
 
+        System.out.println();
+
     }
 
 
-    private static void updateTheme(String val){
+    private static void listAvailableFonts(){
+
+        System.out.println("\n[ Font names ]\n");
+
+        GraphicsEnvironment g = 
+            GraphicsEnvironment.getLocalGraphicsEnvironment();
+        for( Font f: g.getAllFonts() ){
+            System.out.printf(" %s\n", f.getFontName());
+        }
+
+    }
+
+
+    private static String updateTheme(String val){
 
         HashMap<String,String> themes = new HashMap<String,String>();
 
@@ -133,7 +164,7 @@ public class Main {
             System.exit(1);
         }
 
-        theme = themes.get( val );
+        return themes.get( val );
     }
 
     
