@@ -19,14 +19,13 @@ import java.util.regex.Matcher;
 
 public class JtvFileFilter implements FileFilter {
 
-    // Matches nothing..
-    static Pattern pattern = Pattern.compile("\\b\\B");
+    // Matches nothing: \b\B
+    static Pattern pattern = Pattern.compile("^\\..*$");
             //"^(.+\\.[86o]$|.+\\.class|.+\\.pyc|\\..*)$"
 
     public static void setFilter(String s){
         pattern = Pattern.compile( s );
     }
-
 
     @Override
     public boolean accept(File file){

@@ -25,7 +25,7 @@ import com.github.bjarneh.parse.options.Getopt;
 public class Main {
 
 
-    static String help =
+    static String helpMenu =
 
         " jtv - java tree view                    \n"+
         "                                         \n"+
@@ -34,43 +34,56 @@ public class Main {
         " options:                                \n"+
         "                                         \n"+
         "  -h --help  : print this menu and exit  \n"+
-        "  -l --list  : list themes/fonts to use  \n"+
+        "  -l --list  : list themes and fonts     \n"+
         "  -s --stil  : set alternative theme     \n"+
         "  -f --font  : set alternative font      \n"+
         "  -z --size  : set alternative font size \n"+
-        "  -d --drop  : exclude file/dirs [regex] \n";
+        "  -d --drop  : exclude file/dirs [regex] \n"+
+        "  -n --noxt  : don't open via xterm      \n"+
+        "  -o --open  : open with [default: vim]  \n";
 
 
     static String[] dirs = {"src"};
     static String theme  = Jtv.regularStyle;
     static boolean bruce = false;
+    static boolean help  = false;
+    static boolean list  = false;
+    static boolean noxt  = false;
+    static Getopt getopt = initParser();
 
 
-    public static void main(String[] args) {
-
+    static Getopt initParser(){
 
         Getopt getopt = new Getopt();
+
         getopt.addBoolOption("-h -help --help");
         getopt.addBoolOption("-l -list --list");
+        getopt.addBoolOption("-n -noxt --noxt");
         getopt.addBoolOption("-b -bruce --bruce"); // hidden :-)
         getopt.addFancyStrOption("-s --stil");
         getopt.addFancyStrOption("-d --drop");
         getopt.addFancyStrOption("-f --font");
         getopt.addFancyStrOption("-z --size");
+        getopt.addFancyStrOption("-o --open");
+
+        return getopt;
+    }
 
 
-        String[] rest = getopt.parse(args);
+    static String[] parseArgs(String[] args){
 
+        String[] rest = getopt.parse( args );
 
         if( getopt.isSet("-help") ){
-            System.out.printf("\n%s\n", help);
-            System.exit(0);
+            help = true;
         }
 
         if( getopt.isSet("-list") ){
-            listAvailableFonts();
-            listLookAndFeel();
-            System.exit(0);
+            list = true;
+        }
+
+        if( getopt.isSet("-noxt") ){
+            JtvCmd.noXterm();
         }
 
         if( getopt.isSet("-size") ){
@@ -81,6 +94,10 @@ public class Main {
             JtvTreeCellRenderer.fontName = getopt.get("-font");
         }
 
+        if( getopt.isSet("-open") ){
+            JtvCmd.setOpener( getopt.get("-open") );
+        }
+
         if( getopt.isSet("-drop") ){
             JtvFileFilter.setFilter( getopt.get("-drop") );
         }
@@ -89,6 +106,25 @@ public class Main {
 
         if( getopt.isSet("-stil") ){
             theme = updateTheme( getopt.get("-stil") );
+        }
+
+        return rest;
+    }
+
+
+    public static void main(String[] args) {
+
+        String[] rest = parseArgs( args );
+
+        if ( help ) {
+            System.out.printf("\n%s\n", helpMenu);
+            System.exit(0);
+        }
+
+        if( list ){
+            listAvailableFonts();
+            listLookAndFeel();
+            System.exit(0);
         }
 
         //System.out.printf(" %s\n", getopt);
@@ -166,7 +202,5 @@ public class Main {
 
         return themes.get( val );
     }
-
-    
 
 }

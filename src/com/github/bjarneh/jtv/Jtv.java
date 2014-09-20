@@ -274,13 +274,9 @@ public class Jtv extends JPanel {
             return;
         }
 
-
-        String cmd = 
-            String.format("xterm -geometry 80x35 -bw 0 -e  vim %s",
-                node.getUserObject());
         try{
 
-            JtvCmd.run( cmd );
+            JtvCmd.open( (File) node.getUserObject() );
 
         }catch(Exception e){
             log.log(Level.SEVERE, e.getMessage(), e); 
@@ -470,7 +466,7 @@ public class Jtv extends JPanel {
         void perhapsTerm(KeyEvent e){
             if( CTRL_IS_DOWN ){
                 try{
-                    JtvCmd.run("xterm");
+                    JtvCmd.run(new String[]{"xterm"});
                 }catch(Exception ex){
                     log.log(Level.SEVERE, ex.getMessage(), ex);
                 }
