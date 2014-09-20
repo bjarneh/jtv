@@ -32,7 +32,9 @@ public class JtvCmd {
     }
 
     public static void noXterm(){
-        args = new String[]{ args[6], args[7] };
+        if( args.length == 8 ){
+            args = new String[]{ args[6], args[7] };
+        }
     }
 
     // env == null will inherit environment from our own process
