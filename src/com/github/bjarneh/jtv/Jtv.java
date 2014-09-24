@@ -40,6 +40,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.OceanTheme;
+import javax.swing.plaf.metal.DefaultMetalTheme;
 
 // libb
 import com.github.bjarneh.utilz.res;
@@ -306,22 +307,6 @@ public class Jtv extends JPanel {
         try {
 
             UIManager.setLookAndFeel( style );
-
-            if( style.equals( regularStyle ) ){
-
-                UIManager.put("Tree.collapsedIcon",
-                        res.get().icon("img/collapsed.png"));
-                UIManager.put("Tree.expandedIcon",
-                        res.get().icon("img/expanded.png"));
-                UIManager.put("Tree.closedIcon",
-                        res.get().icon("img/dir_close.png"));
-                UIManager.put("Tree.line", Color.GRAY);
-                UIManager.put("Tree.hash", Color.GRAY);
-                UIManager.put("Tree.selectionForeground", Color.WHITE);
-                UIManager.put("Tree.selectionBackground", Color.DARK_GRAY);
-                UIManager.put("Tree.selectionBorderColor",Color.DARK_GRAY);
-
-            }
 
         } catch (Exception e) {
             log.log(Level.SEVERE, e.getMessage(), e); 
