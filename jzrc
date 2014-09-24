@@ -1,3 +1,5 @@
 # config for jz
 
 -output jtv
+-target 1.5
+-source 1.5
