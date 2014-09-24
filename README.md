@@ -1,4 +1,4 @@
 
 
-        jtv - a tree view [opens files in vim]
+        jtv - a tree view [files open in vim]
 

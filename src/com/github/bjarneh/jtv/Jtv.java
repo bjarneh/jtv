@@ -23,12 +23,15 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyAdapter;
+import java.awt.event.InputEvent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.UIManager;
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
+import javax.swing.InputMap;
+import javax.swing.KeyStroke;
 import javax.swing.ImageIcon;
 import javax.swing.LookAndFeel;
 import javax.swing.tree.DefaultTreeModel;
@@ -41,6 +44,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.OceanTheme;
 import javax.swing.plaf.metal.DefaultMetalTheme;
+import javax.swing.text.DefaultEditorKit;
 
 // libb
 import com.github.bjarneh.utilz.res;
@@ -80,10 +84,6 @@ public class Jtv extends JPanel {
     private static final Logger log = Logger.getLogger(Jtv.class.getName());
 
 
-    // Perhaps that getModifiers stuff should be used instead?
-    boolean CTRL_IS_DOWN = false;
-
-
     public Jtv() {
         super(new GridLayout(1,0));
     }
@@ -95,8 +95,11 @@ public class Jtv extends JPanel {
 
         // More than one dir is given
         if( root.getUserObject() == null ){
-           tree.setRootVisible(false);
+            tree.setRootVisible(false);
+        }else{
+            tree.collapsePath(new TreePath(root.getPath()));
         }
+
         tree.getSelectionModel().setSelectionMode
                 (TreeSelectionModel.SINGLE_TREE_SELECTION);
 
@@ -275,9 +278,18 @@ public class Jtv extends JPanel {
             return;
         }
 
+        // TODO check if user is actually using vim
+        File swp = new File( file.getParentFile(),"."+file.getName()+".swp");
+        if( swp.isFile() ){
+            JOptionPane.showMessageDialog(topFrame,
+                    "File is already open", "Info", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
         try{
 
-            JtvCmd.open( (File) node.getUserObject() );
+            JtvCmd.open( file );
 
         }catch(Exception e){
             log.log(Level.SEVERE, e.getMessage(), e); 
@@ -386,12 +398,6 @@ public class Jtv extends JPanel {
     // Listen to a few key events
     final KeyListener keyListener = new KeyAdapter() {
 
-
-        void holdsCtrl(boolean value){
-            CTRL_IS_DOWN = value;
-        }
-
-
         void enterPressed(KeyEvent e){
             if( current != null ) {
                 if( current.isLeaf() ) {
@@ -408,48 +414,51 @@ public class Jtv extends JPanel {
         }
 
 
-        void perhapsMaximize(KeyEvent e){
-            if( CTRL_IS_DOWN ){
+        void handleMaximize(KeyEvent e, boolean needsCtrl){
+            if( !needsCtrl || 
+                (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 )
+            {
                 toggleMaximize();
                 e.consume();
             }
         }
 
 
-        void perhapsNormalize(KeyEvent e){
-            if( CTRL_IS_DOWN ){
+        void handleNormalize(KeyEvent e){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 resetSize();
                 e.consume();
             }
         }
 
 
-        void perhapsResetYX(KeyEvent e){
-            if( CTRL_IS_DOWN ){
+        void handleResetYX(KeyEvent e){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 resetPosition();
                 e.consume();
             }
         }
 
 
-        void perhapsBigger(KeyEvent e){
-            if( CTRL_IS_DOWN ){
+        void handleBigger(KeyEvent e){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 getBigger();
                 e.consume();
             }
         }
 
 
-        void perhapsSmaller(KeyEvent e){
-            if( CTRL_IS_DOWN ){
+        void handleSmaller(KeyEvent e){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 getSmaller();
                 e.consume();
             }
         }
 
 
-        void perhapsTerm(KeyEvent e){
-            if( CTRL_IS_DOWN ){
+        void handleTerm(KeyEvent e){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 try{
                     JtvCmd.run(new String[]{"xterm"});
                 }catch(Exception ex){
@@ -460,9 +469,9 @@ public class Jtv extends JPanel {
         }
 
 
-        void quit(boolean sure){
+        void quit(KeyEvent e, boolean sure){
 
-            if( CTRL_IS_DOWN ){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
 
                 if( !sure ){
                     int reply = JOptionPane.showConfirmDialog(topFrame,
@@ -478,15 +487,15 @@ public class Jtv extends JPanel {
         }
 
 
-        void refreshTree(KeyEvent e){
+        void handleRefresh(KeyEvent e){
             e.consume();
             System.out.printf(" refresh\n");
         }
 
 
-        void perhapsNewFile(KeyEvent e){
+        void handleNewFile(KeyEvent e){
 
-            if( CTRL_IS_DOWN ){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0  ){
                 e.consume();
                 if( current != null ){
                     File parent = (File) current.getUserObject();
@@ -507,9 +516,9 @@ public class Jtv extends JPanel {
         }
 
 
-        void perhapsDeleteFile(KeyEvent e){
+        void handleDeleteFile(KeyEvent e){
 
-            if( CTRL_IS_DOWN ){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 if( current != null ){
                     File file = (File) current.getUserObject();
                     if( file.isFile() ){
@@ -526,37 +535,34 @@ public class Jtv extends JPanel {
         }
 
 
-
-
-
         public void keyPressed(KeyEvent e) {
 
             switch(e.getKeyCode()){
                 default: break;
-                case KeyEvent.VK_CONTROL: holdsCtrl(true); break;
                 case KeyEvent.VK_ENTER  : enterPressed(e); break;
                 case KeyEvent.VK_Q      :
-                case KeyEvent.VK_W      : quit(true); break;
-                case KeyEvent.VK_C      : quit(false); break;
-                case KeyEvent.VK_PLUS   : perhapsBigger(e); break;
-                case KeyEvent.VK_MINUS  : perhapsSmaller(e); break;
-                case KeyEvent.VK_M      : perhapsMaximize(e); break;
-                case KeyEvent.VK_N      : perhapsNormalize(e); break;
-                case KeyEvent.VK_0      : perhapsResetYX(e); break;
-                case KeyEvent.VK_X      : perhapsTerm(e); break;
-                case KeyEvent.VK_A      : perhapsNewFile(e); break;
-                case KeyEvent.VK_D      : perhapsDeleteFile(e); break;
-                case KeyEvent.VK_F5     : refreshTree(e); break;
+                case KeyEvent.VK_W      : quit(e, true); break;
+                case KeyEvent.VK_C      : quit(e, false); break;
+                case KeyEvent.VK_PLUS   : handleBigger(e); break;
+                case KeyEvent.VK_MINUS  : handleSmaller(e); break;
+                case KeyEvent.VK_F11    : handleMaximize(e, false); break;
+                case KeyEvent.VK_M      : handleMaximize(e, true); break;
+                case KeyEvent.VK_N      : handleNormalize(e); break;
+                case KeyEvent.VK_0      : handleResetYX(e); break;
+                case KeyEvent.VK_X      : handleTerm(e); break;
+                case KeyEvent.VK_A      : handleNewFile(e); break;
+                case KeyEvent.VK_D      : handleDeleteFile(e); break;
+                case KeyEvent.VK_F5     : handleRefresh(e); break;
             }
 
         }
 
 
+        // not much here :-)
         public void keyReleased(KeyEvent e) {
 
             switch(e.getKeyCode()){
                 default: break;
-                case KeyEvent.VK_CONTROL: holdsCtrl(false); break;
             }
         }
 
