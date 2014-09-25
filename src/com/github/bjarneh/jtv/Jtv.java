@@ -535,24 +535,37 @@ public class Jtv extends JPanel {
         }
 
 
+        void handleNextLevel(KeyEvent e, boolean up){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+                System.out.printf(" next level up: %s\n", up);
+                e.consume();
+            }
+
+        }
+
+
+
         public void keyPressed(KeyEvent e) {
 
             switch(e.getKeyCode()){
                 default: break;
-                case KeyEvent.VK_ENTER  : enterPressed(e); break;
-                case KeyEvent.VK_Q      :
-                case KeyEvent.VK_W      : quit(e, true); break;
-                case KeyEvent.VK_C      : quit(e, false); break;
-                case KeyEvent.VK_PLUS   : handleBigger(e); break;
-                case KeyEvent.VK_MINUS  : handleSmaller(e); break;
-                case KeyEvent.VK_F11    : handleMaximize(e, false); break;
-                case KeyEvent.VK_M      : handleMaximize(e, true); break;
-                case KeyEvent.VK_N      : handleNormalize(e); break;
-                case KeyEvent.VK_0      : handleResetYX(e); break;
-                case KeyEvent.VK_X      : handleTerm(e); break;
-                case KeyEvent.VK_A      : handleNewFile(e); break;
-                case KeyEvent.VK_D      : handleDeleteFile(e); break;
-                case KeyEvent.VK_F5     : handleRefresh(e); break;
+                case KeyEvent.VK_ENTER : enterPressed(e); break;
+                case KeyEvent.VK_Q     :
+                case KeyEvent.VK_W     : quit(e, true); break;
+                case KeyEvent.VK_C     : quit(e, false); break;
+                case KeyEvent.VK_PLUS  : handleBigger(e); break;
+                case KeyEvent.VK_MINUS : handleSmaller(e); break;
+                case KeyEvent.VK_F11   : handleMaximize(e, false); break;
+                case KeyEvent.VK_M     : handleMaximize(e, true); break;
+                case KeyEvent.VK_N     : handleNormalize(e); break;
+                case KeyEvent.VK_0     : handleResetYX(e); break;
+                case KeyEvent.VK_X     : handleTerm(e); break;
+                case KeyEvent.VK_A     : handleNewFile(e); break;
+                case KeyEvent.VK_D     : handleDeleteFile(e); break;
+                case KeyEvent.VK_F5    : handleRefresh(e); break;
+                case KeyEvent.VK_UP    : handleNextLevel(e, true); break;
+                case KeyEvent.VK_DOWN  : handleNextLevel(e, false); break;
             }
 
         }
