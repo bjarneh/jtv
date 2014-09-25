@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import javax.swing.UIManager;
 import javax.swing.SwingUtilities;
 import java.awt.Font;
-import java.awt.GraphicsEnvironment;
 
 // libb
 import com.github.bjarneh.parse.options.Getopt;
@@ -27,20 +26,20 @@ public class Main {
 
     static String helpMenu =
 
-        " jtv - java tree view                    \n"+
-        "                                         \n"+
-        " usage: jtv [OPTIONS] [DIR]              \n"+
-        "                                         \n"+
-        " options:                                \n"+
-        "                                         \n"+
-        "  -h --help  : print this menu and exit  \n"+
-        "  -l --list  : list themes and fonts     \n"+
-        "  -s --stil  : set alternative theme     \n"+
-        "  -f --font  : set alternative font      \n"+
-        "  -z --size  : set alternative font size \n"+
-        "  -d --drop  : exclude file/dirs [regex] \n"+
-        "  -n --noxt  : don't open via xterm      \n"+
-        "  -o --open  : open with [default: vim]  \n";
+        " jtv - java tree view                     \n"+
+        "                                          \n"+
+        " usage: jtv [OPTIONS] [DIR]               \n"+
+        "                                          \n"+
+        " options:                                 \n"+
+        "                                          \n"+
+        "  -h --help  :  print this menu and exit  \n"+
+        "  -l --list  :  list themes and fonts     \n"+
+        "  -s --stil  :  set alternative theme     \n"+
+        "  -f --font  :  set alternative font      \n"+
+        "  -z --size  :  set alternative font size \n"+
+        "  -d --drop  :  exclude file/dirs [regex] \n"+
+        "  -n --noxt  :  don't open via xterm      \n"+
+        "  -o --open  :  open with [default: vim]  \n";
 
 
     static String[] dirs = {"src"};
@@ -174,12 +173,9 @@ public class Main {
 
         System.out.println("\n[ Font names ]\n");
 
-        GraphicsEnvironment g = 
-            GraphicsEnvironment.getLocalGraphicsEnvironment();
-        for( Font f: g.getAllFonts() ){
+        for( Font f: JtvTreeCellRenderer.allFonts() ){
             System.out.printf(" %s\n", f.getFontName());
         }
-
     }
 
 

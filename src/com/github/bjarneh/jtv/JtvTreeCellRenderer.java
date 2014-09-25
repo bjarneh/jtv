@@ -6,6 +6,7 @@ package com.github.bjarneh.jtv;
 
 // std
 import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 // libb
@@ -20,10 +21,18 @@ import com.github.bjarneh.utilz.res;
 
 public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
 
+    //  LOOKS PRETTY GOOD
+    //
+    //  Gothic Uralic
+    //  L M Mono Lt10 Bold
+    //  L M Mono10 Regular
 
     static public int fontSize    = 12;
     static public int fontStyle   = Font.PLAIN;
     static public String fontName = Font.MONOSPACED;
+
+    static Font[] fonts  = null;
+    static int fontIndex = 0;
 
 
     public JtvTreeCellRenderer() {
@@ -36,6 +45,23 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
 
         setFont( new Font( fontName, fontStyle, fontSize) );
 
+    }
+
+
+    protected Font nextFont(){
+        if( fonts == null ){
+            fonts = allFonts();
+            for(int i = 0; i < fonts.length; i++){
+                fonts[i] = new Font(fonts[i].getName(),fontStyle,fontSize);
+            }
+        }
+        return fonts[fontIndex++ % fonts.length];
+    }
+
+
+    public static Font[] allFonts(){
+        return GraphicsEnvironment.getLocalGraphicsEnvironment()
+                                  .getAllFonts();
     }
 
 }

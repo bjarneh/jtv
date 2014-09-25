@@ -13,6 +13,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Container;
 import java.awt.Color;
+import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -34,6 +35,7 @@ import javax.swing.InputMap;
 import javax.swing.KeyStroke;
 import javax.swing.ImageIcon;
 import javax.swing.LookAndFeel;
+import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -398,8 +400,10 @@ public class Jtv extends JPanel {
     // Listen to a few key events
     final KeyListener keyListener = new KeyAdapter() {
 
-        void enterPressed(KeyEvent e){
+        void handleEnter(KeyEvent e){
+
             if( current != null ) {
+                e.consume();
                 if( current.isLeaf() ) {
                     openFile( current );
                 }else{
@@ -409,8 +413,8 @@ public class Jtv extends JPanel {
                         collapseAll( current );
                     }
                 }
-                e.consume();
             }
+
         }
 
 
@@ -418,40 +422,89 @@ public class Jtv extends JPanel {
             if( !needsCtrl || 
                 (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 )
             {
-                toggleMaximize();
                 e.consume();
+                toggleMaximize();
             }
         }
 
 
         void handleNormalize(KeyEvent e){
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
-                resetSize();
                 e.consume();
+                resetSize();
             }
         }
 
 
         void handleResetYX(KeyEvent e){
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
-                resetPosition();
                 e.consume();
+                resetPosition();
             }
         }
 
 
         void handleBigger(KeyEvent e){
+
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
-                getBigger();
                 e.consume();
+                getBigger();
+            }
+
+            if( (e.getModifiers() & KeyEvent.ALT_MASK) != 0 ){
+
+                TreeCellRenderer cellRenderer = tree.getCellRenderer();
+
+                if( cellRenderer instanceof DefaultTreeCellRenderer ){
+
+                    e.consume();
+
+                    DefaultTreeCellRenderer dCellRenderer =
+                        (DefaultTreeCellRenderer) cellRenderer;
+
+                    Font font = dCellRenderer.getFont();
+                    Font next = new Font(font.getName(),
+                            font.getStyle(), font.getSize() + 1);
+                    dCellRenderer.setFont( next );
+
+                    //System.out.printf(" font: %s\n", next);
+
+                    // repaint tree with new font
+                    ((DefaultTreeModel)tree.getModel()).reload();
+
+                }
             }
         }
 
 
         void handleSmaller(KeyEvent e){
+
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
-                getSmaller();
                 e.consume();
+                getSmaller();
+            }
+
+            if( (e.getModifiers() & KeyEvent.ALT_MASK) != 0 ){
+
+                TreeCellRenderer cellRenderer = tree.getCellRenderer();
+
+                if( cellRenderer instanceof DefaultTreeCellRenderer ){
+
+                    e.consume();
+
+                    DefaultTreeCellRenderer dCellRenderer =
+                        (DefaultTreeCellRenderer) cellRenderer;
+
+                    Font font = dCellRenderer.getFont();
+
+                    if( font.getSize() > 1 ){
+                        Font next = new Font(font.getName(),
+                                font.getStyle(), font.getSize() - 1);
+                        dCellRenderer.setFont( next );
+                        // repaint tree with new font
+                        ((DefaultTreeModel)tree.getModel()).reload();
+                    }
+                }
             }
         }
 
@@ -469,7 +522,7 @@ public class Jtv extends JPanel {
         }
 
 
-        void quit(KeyEvent e, boolean sure){
+        void handleQuit(KeyEvent e, boolean sure){
 
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
 
@@ -502,7 +555,7 @@ public class Jtv extends JPanel {
                     if( parent.isDirectory() ){
                         String fname = 
                             JOptionPane.showInputDialog(topFrame, "Name?");
-                        if( fname != null ){
+                        if( fname != null && !fname.matches("^\\s*$") ){
                             File son = new File( parent, fname );
                             if( touch( son ) ){
                                 JtvTreeNode node = new JtvTreeNode( son );
@@ -545,17 +598,44 @@ public class Jtv extends JPanel {
         }
 
 
+        void handleFontCycle(KeyEvent e){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+
+                TreeCellRenderer cellRenderer = tree.getCellRenderer();
+
+                if( cellRenderer instanceof JtvTreeCellRenderer ){
+
+                    e.consume();
+
+                    JtvTreeCellRenderer jtvCellRenderer =
+                        (JtvTreeCellRenderer) cellRenderer;
+
+                    Font next = jtvCellRenderer.nextFont();
+                    jtvCellRenderer.setFont( next );
+
+                    //System.out.printf(" font: %s\n", next);
+
+                    // repaint tree with new font
+                    ((DefaultTreeModel)tree.getModel()).reload();
+
+                }
+            }
+
+        }
+
 
         public void keyPressed(KeyEvent e) {
 
             switch(e.getKeyCode()){
                 default: break;
-                case KeyEvent.VK_ENTER : enterPressed(e); break;
+                case KeyEvent.VK_ENTER : handleEnter(e); break;
                 case KeyEvent.VK_Q     :
-                case KeyEvent.VK_W     : quit(e, true); break;
-                case KeyEvent.VK_C     : quit(e, false); break;
+                case KeyEvent.VK_W     : handleQuit(e, true); break;
+                case KeyEvent.VK_C     : handleQuit(e, false); break;
                 case KeyEvent.VK_PLUS  : handleBigger(e); break;
                 case KeyEvent.VK_MINUS : handleSmaller(e); break;
+                case KeyEvent.VK_E     : handleFontCycle(e); break;
                 case KeyEvent.VK_F11   : handleMaximize(e, false); break;
                 case KeyEvent.VK_M     : handleMaximize(e, true); break;
                 case KeyEvent.VK_N     : handleNormalize(e); break;
