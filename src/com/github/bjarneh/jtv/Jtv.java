@@ -554,7 +554,11 @@ public class Jtv extends JPanel {
                     File parent = (File) current.getUserObject();
                     if( parent.isDirectory() ){
                         String fname = 
-                            JOptionPane.showInputDialog(topFrame, "Name?");
+                            JOptionPane.showInputDialog(
+                                    topFrame, 
+                                    "Name:",
+                                    "Add file",
+                                    JOptionPane.INFORMATION_MESSAGE);
                         if( fname != null && !fname.matches("^\\s*$") ){
                             File son = new File( parent, fname );
                             if( touch( son ) ){
