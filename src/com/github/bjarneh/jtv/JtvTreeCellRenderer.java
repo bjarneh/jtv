@@ -50,18 +50,21 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
 
     protected Font nextFont(){
         if( fonts == null ){
-            fonts = allFonts();
-            for(int i = 0; i < fonts.length; i++){
-                fonts[i] = new Font(fonts[i].getName(),fontStyle,fontSize);
-            }
+            allFonts(); // fonts gets filled
         }
         return fonts[fontIndex++ % fonts.length];
     }
 
 
     public static Font[] allFonts(){
-        return GraphicsEnvironment.getLocalGraphicsEnvironment()
-                                  .getAllFonts();
+        if( fonts == null ){
+            fonts = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                                       .getAllFonts();
+            for(int i = 0; i < fonts.length; i++){
+                fonts[i] = new Font(fonts[i].getName(),fontStyle,fontSize);
+            }
+        }
+        return fonts;
     }
 
 }
