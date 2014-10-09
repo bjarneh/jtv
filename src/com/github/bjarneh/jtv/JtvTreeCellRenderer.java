@@ -6,7 +6,10 @@ package com.github.bjarneh.jtv;
 
 // std
 import java.awt.Font;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.GraphicsEnvironment;
+import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 // libb
@@ -34,6 +37,7 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
     static Font[] fonts  = null;
     static int fontIndex = 0;
 
+    static boolean alternativeColor = false;
 
     public JtvTreeCellRenderer() {
 
@@ -65,6 +69,54 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
             }
         }
         return fonts;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Color getBackgroundNonSelectionColor(){
+        if( alternativeColor ){
+            return Color.GREEN;
+        }
+        return super.getBackgroundNonSelectionColor();
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Color getTextSelectionColor(){
+        if( alternativeColor ){
+            return Color.GREEN;
+        }
+        return super.getTextSelectionColor();
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Component getTreeCellRendererComponent(
+            JTree tree,
+            Object value,
+            boolean sel,
+            boolean expanded,
+            boolean leaf,
+            int row,
+            boolean hasFocus)
+    {
+
+        if( value instanceof JtvTreeNode ){
+            JtvTreeNode n = (JtvTreeNode) value;
+            alternativeColor = n.isMarked();
+        }
+        super.getTreeCellRendererComponent(
+                tree, value, sel, expanded, leaf, row, hasFocus);
+        return this;
     }
 
 }

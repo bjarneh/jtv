@@ -79,9 +79,10 @@ public class Jtv extends JPanel {
     public static final String regularStyle = 
         "com.github.bjarneh.jtv.JtvLookAndFeel";
 
+    private int currentMark = 0;
+    private ArrayList<JtvTreeNode> marks = new ArrayList<JtvTreeNode>();
 
     private DefaultMutableTreeNode current;
-
 
     private static final Logger log = Logger.getLogger(Jtv.class.getName());
 
@@ -629,6 +630,46 @@ public class Jtv extends JPanel {
         }
 
 
+        void handleMark(KeyEvent e){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+
+                e.consume();
+
+                JtvTreeNode n = (JtvTreeNode)
+                    tree.getLastSelectedPathComponent();
+
+                n.toggleMark();
+
+                if( n.isMarked() ){
+                    marks.add( n );
+                }else{
+                    marks.remove( n );
+                }
+
+            }
+
+        }
+
+
+        void handleGoto(KeyEvent e){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+
+                e.consume();
+
+                JtvTreeNode n;
+                if( marks.size() > 0 ){
+                    currentMark = (++currentMark) % marks.size();
+                    n = marks.get(currentMark);
+                    tree.setSelectionPath(new TreePath(n.getPath()));
+                }
+
+            }
+
+        }
+
+
         public void keyPressed(KeyEvent e) {
 
             switch(e.getKeyCode()){
@@ -647,6 +688,8 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_X     : handleTerm(e); break;
                 case KeyEvent.VK_A     : handleNewFile(e); break;
                 case KeyEvent.VK_D     : handleDeleteFile(e); break;
+                case KeyEvent.VK_K     : handleMark(e); break;
+                case KeyEvent.VK_F     : handleGoto(e); break;
                 case KeyEvent.VK_F5    : handleRefresh(e); break;
                 case KeyEvent.VK_UP    : handleNextLevel(e, true); break;
                 case KeyEvent.VK_DOWN  : handleNextLevel(e, false); break;

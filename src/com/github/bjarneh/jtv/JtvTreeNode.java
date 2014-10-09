@@ -15,6 +15,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 public class JtvTreeNode extends DefaultMutableTreeNode {
 
+    boolean marked = false;
+
     public JtvTreeNode(){
         super();
     }
@@ -25,6 +27,14 @@ public class JtvTreeNode extends DefaultMutableTreeNode {
 
     public JtvTreeNode(Object obj, boolean allowsChildren){
         super(obj, allowsChildren);
+    }
+
+    public boolean isMarked(){
+        return marked;
+    }
+    
+    public void toggleMark(){
+        marked = !marked;
     }
 
     @Override
@@ -41,4 +51,5 @@ public class JtvTreeNode extends DefaultMutableTreeNode {
         }
         return super.toString();
     }
+
 }
