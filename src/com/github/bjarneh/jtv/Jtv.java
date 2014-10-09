@@ -665,9 +665,8 @@ public class Jtv extends JPanel {
                     currentMark = (++currentMark) % marks.size();
                     n = marks.get(currentMark);
                     p = new TreePath(n.getPath());
-                    tree.expandPath( p );
+                    tree.setSelectionPath( p );
                     tree.scrollPathToVisible( p );
-                    //tree.setSelectionPath( p );
                 }
 
             }
