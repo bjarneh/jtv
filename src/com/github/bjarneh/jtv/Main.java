@@ -38,6 +38,7 @@ public class Main {
         "  -f --font  :  set alternative font      \n"+
         "  -z --size  :  set alternative font size \n"+
         "  -d --drop  :  exclude file/dirs [regex] \n"+
+        "  -m --mark  :  mark color: rgb(0,255,0)  \n"+
         "  -n --noxt  :  don't open via xterm      \n"+
         "  -o --open  :  open with [default: vim]  \n";
 
@@ -64,8 +65,10 @@ public class Main {
         getopt.addFancyStrOption("-f --font");
         getopt.addFancyStrOption("-z --size");
         getopt.addFancyStrOption("-o --open");
+        getopt.addFancyStrOption("-m --mark");
 
         return getopt;
+
     }
 
 
@@ -87,6 +90,10 @@ public class Main {
 
         if( getopt.isSet("-size") ){
             JtvTreeCellRenderer.fontSize = getopt.getInt("-size");
+        }
+
+        if( getopt.isSet("-mark") ){
+            JtvTreeCellRenderer.setColor( getopt.get("-mark") );
         }
 
         if( getopt.isSet("-font") ){

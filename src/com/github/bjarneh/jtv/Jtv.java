@@ -16,6 +16,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.awt.event.MouseEvent;
@@ -544,11 +545,47 @@ public class Jtv extends JPanel {
 
 
         void handleRefresh(KeyEvent e){
+
             e.consume();
-            DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
-            JtvTreeNode n = (JtvTreeNode) model.getRoot();
-            System.out.printf(" refresh: %s (%s) (%s)\n",
-                    n, n.getClass().getName(), n.getUserObject());
+
+            DefaultTreeModel model   = (DefaultTreeModel) tree.getModel();
+            JtvTreeNode child, r2, n = (JtvTreeNode) model.getRoot();
+
+            File file;
+            ArrayList<File> files = new ArrayList<File>();
+
+            // multiple roots
+            if( n.getUserObject() == null ){
+
+                Enumeration en = n.children();
+                while(en.hasMoreElements()){
+                    child = (JtvTreeNode) en.nextElement();
+                    file  = (File) child.getUserObject();
+                    if( file.isDirectory() ){
+                        files.add( file );
+                    }
+
+                }
+                
+                String[] roots = new String[ files.size() ];
+                int i = 0;
+                for(File f: files){
+                    roots[i++] = f.getAbsolutePath();
+                }
+
+                r2 = buildTree( roots );
+
+            } else {
+
+                File orig = (File) n.getUserObject();
+                r2 = buildTree( orig.getAbsolutePath() );
+            }
+
+///             System.out.printf(" refresh: %s (%s) (%s)\n",
+///                     n, n.getClass().getName(), n.getUserObject());
+
+            model.setRoot( r2 );
+
         }
 
 
@@ -677,7 +714,6 @@ public class Jtv extends JPanel {
                     tree.setSelectionPath( p );
                     tree.scrollPathToVisible( p );
                 }
-
             }
 
         }

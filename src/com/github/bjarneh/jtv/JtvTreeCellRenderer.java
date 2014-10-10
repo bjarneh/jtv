@@ -9,6 +9,8 @@ import java.awt.Font;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GraphicsEnvironment;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
@@ -40,6 +42,11 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
     static int fontIndex = 0;
 
     static boolean alternativeColor = false;
+    static Color highlighted = Color.GREEN;
+
+    static final Pattern rgb = 
+        Pattern.compile("^rgb\\((\\d+),(\\d+),(\\d+)\\)$");
+
 
     public JtvTreeCellRenderer() {
 
@@ -74,13 +81,34 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
     }
 
 
+    public static void setColor(String asRGB){
+
+        if( asRGB != null ) {
+
+            Matcher m = rgb.matcher( asRGB );
+            if( m.matches() ){
+                int r = Integer.parseInt(m.group(1));
+                int g = Integer.parseInt(m.group(2));
+                int b = Integer.parseInt(m.group(3));
+
+                highlighted = new Color(r,g,b);
+            }
+///             int r = Integer.parseInt(htmlColor.substring(1,3), 16);
+///             int g = Integer.parseInt(htmlColor.substring(3,5), 16);
+///             int b = Integer.parseInt(htmlColor.substring(5), 16);
+/// 
+///             highlighted = new Color(r, g, b);
+        }
+    }
+
+
     /**
      * {@inheritDoc}
      */
     @Override
     public Color getBackgroundNonSelectionColor(){
         if( alternativeColor ){
-            return Color.GREEN;
+            return highlighted;
         }
         return super.getBackgroundNonSelectionColor();
     }
@@ -92,7 +120,7 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
     @Override
     public Color getTextSelectionColor(){
         if( alternativeColor ){
-            return Color.GREEN;
+            return highlighted;
         }
         return super.getTextSelectionColor();
     }
