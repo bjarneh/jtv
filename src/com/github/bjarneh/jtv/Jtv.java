@@ -543,7 +543,10 @@ public class Jtv extends JPanel {
 
         void handleRefresh(KeyEvent e){
             e.consume();
-            System.out.printf(" refresh\n");
+            DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+            JtvTreeNode n = (JtvTreeNode) model.getRoot();
+            System.out.printf(" refresh: %s (%s) (%s)\n",
+                    n, n.getClass().getName(), n.getUserObject());
         }
 
 
@@ -593,16 +596,6 @@ public class Jtv extends JPanel {
         }
 
 
-        void handleNextLevel(KeyEvent e, boolean up){
-
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
-                System.out.printf(" next level up: %s\n", up);
-                e.consume();
-            }
-
-        }
-
-
         void handleFontCycle(KeyEvent e){
 
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
@@ -647,8 +640,22 @@ public class Jtv extends JPanel {
                     marks.remove( n );
                 }
 
+                DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+                model.nodeChanged( n );
             }
 
+        }
+
+
+        void handleRemoveMarks(KeyEvent e){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+                e.consume();
+                for(JtvTreeNode n: marks){
+                    n.toggleMark();
+                }
+                marks.clear();
+            }
         }
 
 
@@ -678,6 +685,7 @@ public class Jtv extends JPanel {
 
             switch(e.getKeyCode()){
                 default: break;
+                case KeyEvent.VK_SPACE :
                 case KeyEvent.VK_ENTER : handleEnter(e); break;
                 case KeyEvent.VK_Q     :
                 case KeyEvent.VK_W     : handleQuit(e, true); break;
@@ -692,11 +700,11 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_X     : handleTerm(e); break;
                 case KeyEvent.VK_A     : handleNewFile(e); break;
                 case KeyEvent.VK_D     : handleDeleteFile(e); break;
+                case KeyEvent.VK_R     : handleRemoveMarks(e); break;
+                case KeyEvent.VK_S     :
                 case KeyEvent.VK_K     : handleMark(e); break;
                 case KeyEvent.VK_F     : handleGoto(e); break;
                 case KeyEvent.VK_F5    : handleRefresh(e); break;
-                case KeyEvent.VK_UP    : handleNextLevel(e, true); break;
-                case KeyEvent.VK_DOWN  : handleNextLevel(e, false); break;
             }
 
         }
