@@ -26,6 +26,8 @@ import com.github.bjarneh.utilz.res;
 
 public class JtvLookAndFeel extends MetalLookAndFeel {
 
+    static final long serialVersionUID = 0;
+
     /**
      * Public constructor.
      */

@@ -60,6 +60,8 @@ import com.github.bjarneh.utilz.res;
 
 public class Jtv extends JPanel {
 
+    static final long serialVersionUID = 0;
+
     private JTree tree;
     private JFrame topFrame;
 

@@ -15,6 +15,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 public class JtvTreeNode extends DefaultMutableTreeNode {
 
+    static final long serialVersionUID = 0;
+
     boolean marked = false;
 
     public JtvTreeNode(){

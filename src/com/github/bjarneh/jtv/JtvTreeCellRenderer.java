@@ -24,6 +24,8 @@ import com.github.bjarneh.utilz.res;
 
 public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
 
+    static final long serialVersionUID = 0;
+
     //  LOOKS PRETTY GOOD
     //
     //  Gothic Uralic
@@ -109,7 +111,6 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
             int row,
             boolean hasFocus)
     {
-
         if( value instanceof JtvTreeNode ){
             JtvTreeNode n = (JtvTreeNode) value;
             alternativeColor = n.isMarked();
