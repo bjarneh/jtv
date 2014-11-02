@@ -156,7 +156,7 @@ public class Jtv extends JPanel {
             if( tmp.isDirectory() ){
                 dirs.add( tmp );
             }else{
-                log.info("This is not a directory '"+ a +"'");
+                log.info("Directory '"+ a +"' not found");
             }
         }
 
