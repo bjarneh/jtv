@@ -32,6 +32,12 @@ import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 
 
+/**
+ * A verbatim copy of the ScrollBarUI class from the J editor.
+ *
+ * @author Peter Graves
+ */
+
 public final class JtvScrollBarUI extends BasicScrollBarUI
 {
     public static ComponentUI createUI(JComponent c)

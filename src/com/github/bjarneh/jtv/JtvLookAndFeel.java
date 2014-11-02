@@ -89,8 +89,7 @@ public class JtvLookAndFeel extends MetalLookAndFeel {
         return "jtv look and feel";
     }
 
-    // This is basically a utility function which
-    // should be placed somewhere else..
+    // Utility function which should be moved somewhere more fittting
     public static Color hexColor(String s){
         if(s != null && s.matches("^#[0-9A-F]{6}$") ){
             int r = Integer.parseInt(s.substring(1,3), hexBase);

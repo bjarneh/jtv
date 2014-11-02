@@ -21,6 +21,8 @@ import com.github.bjarneh.utilz.res;
 /**
  * Extend DefaultTreeCellRenderer to use better looking icons.
  *
+ * The icons used here come from the J editor.
+ *
  * @author bjarneh@ifi.uio.no
  */
 
