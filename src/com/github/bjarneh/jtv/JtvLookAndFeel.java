@@ -26,7 +26,9 @@ import com.github.bjarneh.utilz.res;
 
 public class JtvLookAndFeel extends MetalLookAndFeel {
 
+    static final int  hexBase = 16;
     static final long serialVersionUID = 0;
+
 
     /**
      * Public constructor.
@@ -44,7 +46,18 @@ public class JtvLookAndFeel extends MetalLookAndFeel {
         UIManager.put("Tree.selectionForeground", Color.WHITE);
         UIManager.put("Tree.selectionBackground", Color.DARK_GRAY);
         UIManager.put("Tree.selectionBorderColor",Color.DARK_GRAY);
+
+        // Styling of the scrollbar
+        // Alternative colors: 
+        //   #308850 SEAGREEN, #80D0E0 SKYBLUE, #C0C0C0 SILVER
+        //   #708890 LIGHTSLATEGRAY, #008880 DARK CYAN, #A0A8A0 DARK GRAY
+        UIManager.put("ScrollBar.thumb", hexColor("#E0D8E0")); // GAINSBORO
+        UIManager.put("ScrollBar.thumbHighlight", Color.WHITE);
+        UIManager.put("ScrollBar.thumbDarkShadow", Color.BLACK);
+        UIManager.put("ScrollBarUI", JtvScrollBarUI.class.getName());
+
     }
+
 
     /**
      * Returns the name of this look and feel. This returns
@@ -76,4 +89,15 @@ public class JtvLookAndFeel extends MetalLookAndFeel {
         return "jtv look and feel";
     }
 
+    // This is basically a utility function which
+    // should be placed somewhere else..
+    public static Color hexColor(String s){
+        if(s != null && s.matches("^#[0-9A-F]{6}$") ){
+            int r = Integer.parseInt(s.substring(1,3), hexBase);
+            int g = Integer.parseInt(s.substring(3,5), hexBase);
+            int b = Integer.parseInt(s.substring(5,7), hexBase);
+            return new Color(r,g,b);
+        }
+        return null;
+    }
 }

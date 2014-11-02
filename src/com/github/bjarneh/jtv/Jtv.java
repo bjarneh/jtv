@@ -581,10 +581,8 @@ public class Jtv extends JPanel {
                 r2 = buildTree( orig.getAbsolutePath() );
             }
 
-///             System.out.printf(" refresh: %s (%s) (%s)\n",
-///                     n, n.getClass().getName(), n.getUserObject());
-
             model.setRoot( r2 );
+            marks.clear();
 
         }
 
