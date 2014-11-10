@@ -52,8 +52,8 @@ public class JtvLookAndFeel extends MetalLookAndFeel {
         //   #308850 SEAGREEN, #80D0E0 SKYBLUE, #C0C0C0 SILVER
         //   #708890 LIGHTSLATEGRAY, #008880 DARK CYAN, #A0A8A0 DARK GRAY
         UIManager.put("ScrollBar.thumb", hexColor("#E0D8E0")); // GAINSBORO
-        UIManager.put("ScrollBar.thumbHighlight", Color.WHITE);
-        UIManager.put("ScrollBar.thumbDarkShadow", Color.BLACK);
+        UIManager.put("ScrollBar.thumbHighlight", hexColor("#F8F8FF"));
+        UIManager.put("ScrollBar.thumbDarkShadow", Color.DARK_GRAY);
         UIManager.put("ScrollBarUI", JtvScrollBarUI.class.getName());
 
     }

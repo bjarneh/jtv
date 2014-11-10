@@ -42,6 +42,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.TreePath;
+/// import javax.swing.tree.ExpandVetoException;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.plaf.metal.MetalLookAndFeel;
@@ -191,6 +192,8 @@ public class Jtv extends JPanel {
 
     private void expandAll(DefaultMutableTreeNode path){
 
+        TreePath tp;
+
         if( path == null ){
             return;
         }
@@ -200,12 +203,16 @@ public class Jtv extends JPanel {
 
         while( node != null && node.getLevel() > minLevel ) {
             if( !node.isLeaf() ){
-                tree.expandPath(new TreePath(node.getPath()));
+                tp = new TreePath(node.getPath());
+                tree.expandPath(tp);
             }
             node = node.getNextNode();
         }
 
-        tree.expandPath(new TreePath(path.getPath()));
+        tp = new TreePath(path.getPath());
+        //tree.fireTreeWillExpand(tp);
+        tree.expandPath(tp);
+        //tree.fireTreeExpanded(tp);
     }
 
 

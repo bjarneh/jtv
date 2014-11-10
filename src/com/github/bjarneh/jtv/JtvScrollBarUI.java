@@ -42,7 +42,7 @@ public final class JtvScrollBarUI extends BasicScrollBarUI
 {
     public static ComponentUI createUI(JComponent c)
     {
-        return new ScrollBarUI();
+        return new JtvScrollBarUI();
     }
 
     protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds)
