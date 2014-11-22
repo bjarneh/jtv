@@ -1,6 +1,6 @@
-// Copyright 2014 bjarneh@ifi.uio.no. All rights reserved. 
-// Use of this source code is governed by a BSD-style 
-// license that can be found in the LICENSE file. 
+// Copyright 2014 bjarneh@ifi.uio.no. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
 package com.github.bjarneh.jtv;
 
@@ -52,10 +52,9 @@ public class JtvLookAndFeel extends MetalLookAndFeel {
         //   #308850 SEAGREEN, #80D0E0 SKYBLUE, #C0C0C0 SILVER
         //   #708890 LIGHTSLATEGRAY, #008880 DARK CYAN, #A0A8A0 DARK GRAY
         UIManager.put("ScrollBar.thumb", hexColor("#E0D8E0")); // GAINSBORO
-        UIManager.put("ScrollBar.thumbHighlight", hexColor("#F8F8FF"));
+        UIManager.put("ScrollBar.thumbHighlight", hexColor("#F8F8FF"));//GHOST
         UIManager.put("ScrollBar.thumbDarkShadow", Color.DARK_GRAY);
         UIManager.put("ScrollBarUI", JtvScrollBarUI.class.getName());
-
     }
 
 

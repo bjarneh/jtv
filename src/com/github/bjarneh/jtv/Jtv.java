@@ -1,6 +1,6 @@
-// Copyright 2014 bjarneh@ifi.uio.no. All rights reserved. 
-// Use of this source code is governed by a BSD-style 
-// license that can be found in the LICENSE file. 
+// Copyright 2014 bjarneh@ifi.uio.no. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
 package com.github.bjarneh.jtv;
 
@@ -353,7 +353,7 @@ public class Jtv extends JPanel {
         }
 
         frame.add(this);
-        // Let window manager decide placement
+        // Let the window manager decide placement
         frame.setLocationByPlatform(true);
         frame.pack();
         frame.setVisible(true);

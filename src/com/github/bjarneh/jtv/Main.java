@@ -6,14 +6,18 @@ package com.github.bjarneh.jtv;
 
 // std
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.awt.Font;
 import javax.swing.UIManager;
 import javax.swing.SwingUtilities;
-import java.awt.Font;
 
 // libb
 import com.github.bjarneh.parse.options.Getopt;
+import com.github.bjarneh.utilz.io;
 
 /**
  * Entry point for the application.
@@ -23,6 +27,7 @@ import com.github.bjarneh.parse.options.Getopt;
 
 public class Main {
 
+    private static final Logger log = Logger.getLogger(Main.class.getName());
 
     static String helpMenu =
 
@@ -114,12 +119,17 @@ public class Main {
             theme = updateTheme( getopt.get("-stil") );
         }
 
+        getopt.reset();
+
         return rest;
     }
 
 
     public static void main(String[] args) {
 
+        // Parse configuration first
+        parseConfig();
+        // Command line overrides it..
         String[] rest = parseArgs( args );
 
         if ( help ) {
@@ -204,6 +214,49 @@ public class Main {
         }
 
         return themes.get( val );
+    }
+
+    
+    private static void parseConfig(){
+
+        File stub;
+        String[] args;
+
+        ArrayList<File> conf = new ArrayList<File>();
+        // $PWD/.jtvrc
+        conf.add( new File( JtvCmd.curdir, ".jtvrc" ) );
+        // $HOME/.jtvrc
+        File home = new File( System.getProperty("user.home") );
+        conf.add( new File( home, ".jtvrc" ) );
+        // XDG_CONFIG_HOME/jtv/jtvrc || $HOME/.config/jtv/jtvrc
+        String xdg = System.getenv("XDG_CONFIG_HOME");
+        if( xdg != null ){
+            stub = new File(xdg);
+        }else{
+            stub = new File(home, ".config");
+        }
+        conf.add( new File(new File(stub,"jtv"), "jtvrc") );
+        for(File c: conf){
+            if( c.isFile() ){
+                args = configToArgs(c);
+                if( args != null && args.length > 0 ){
+                    parseArgs( args );
+                }
+            }
+        }
+    }
+
+
+    // Utility function which should be moved
+    private static String[] configToArgs(File f){
+        try{
+            String content = new String(io.raw(f));
+            content = content.replaceAll("(^#[^\\n]*|\n#[^\\n]*)"," ");
+            return content.trim().split("\\s+");
+        }catch(IOException e){
+            log.log(Level.SEVERE, e.getMessage(), e);
+        }
+        return null;
     }
 
 }
