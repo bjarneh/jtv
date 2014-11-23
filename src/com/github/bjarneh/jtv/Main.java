@@ -128,7 +128,9 @@ public class Main {
             JtvFileFilter.setFilter( getopt.get("-drop") );
         }
 
-        bruce = getopt.isSet("-bruce");
+        if( getopt.isSet("-bruce") ){
+            bruce = true;
+        }
 
         if( getopt.isSet("-stil") ){
             theme = updateTheme( getopt.get("-stil") );
