@@ -239,11 +239,13 @@ public class Main {
         File stub;
         String[] args;
 
+        File pwd  = new File( System.getProperty("user.dir") );
+        File home = new File( System.getProperty("user.home") );
+
         ArrayList<File> conf = new ArrayList<File>();
         // $PWD/.jtvrc
-        conf.add( new File( JtvCmd.curdir, ".jtvrc" ) );
+        conf.add( new File( pwd, ".jtvrc" ) );
         // $HOME/.jtvrc
-        File home = new File( System.getProperty("user.home") );
         conf.add( new File( home, ".jtvrc" ) );
         // XDG_CONFIG_HOME/jtv/jtvrc || $HOME/.config/jtv/jtvrc
         String xdg = System.getenv("XDG_CONFIG_HOME");
