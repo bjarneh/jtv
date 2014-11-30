@@ -85,16 +85,12 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
         try{
 
             InputStream is;
+            Font monacoTtf, monacoSized;
 
             is = res.get().url("font/Monaco.ttf").openStream();
             
-            Font monacoTtf = Font.createFont(Font.TRUETYPE_FONT, is);
-            Font monacoSized = 
-                 monacoTtf.deriveFont(Font.PLAIN, (float) fontSize );
-
-            is = res.get()
-                    .url("font/AnonymousPro/Anonymous Pro.ttf")
-                    .openStream();
+            monacoTtf   = Font.createFont(Font.TRUETYPE_FONT, is);
+            monacoSized = monacoTtf.deriveFont(Font.PLAIN, (float) fontSize );
 
             GraphicsEnvironment ge = 
                 GraphicsEnvironment.getLocalGraphicsEnvironment();
