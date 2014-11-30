@@ -22,9 +22,14 @@ package com.github.bjarneh.jtv;
 import java.awt.Font;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.io.InputStream;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
@@ -44,11 +49,8 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
 
     static final long serialVersionUID = 0;
 
-    //  LOOKS PRETTY GOOD
-    //
-    //  Gothic Uralic
-    //  L M Mono Lt10 Bold
-    //  L M Mono10 Regular
+    private static final Logger log = 
+        Logger.getLogger(JtvTreeCellRenderer.class.getName());
 
     static public int fontSize    = 12;
     static public int fontStyle   = Font.PLAIN;
@@ -73,6 +75,37 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
         setLeafIcon(null); // to remove leaf icons from this look and feel
 
         setFont( new Font( fontName, fontStyle, fontSize) );
+
+    }
+
+
+    // Only Monaco currently
+    protected static void registerFonts(){
+
+        try{
+
+            InputStream is;
+
+            is = res.get().url("font/Monaco.ttf").openStream();
+            
+            Font monacoTtf = Font.createFont(Font.TRUETYPE_FONT, is);
+            Font monacoSized = 
+                 monacoTtf.deriveFont(Font.PLAIN, (float) fontSize );
+
+            is = res.get()
+                    .url("font/AnonymousPro/Anonymous Pro.ttf")
+                    .openStream();
+
+            GraphicsEnvironment ge = 
+                GraphicsEnvironment.getLocalGraphicsEnvironment();
+
+            ge.registerFont( monacoSized );
+
+        //java.io.IOException || java.awt.FontFormatException
+        }catch(Exception e){ 
+            // not much we can do here..
+            log.log(Level.INFO, e.getMessage(), e);
+        }
 
     }
 
@@ -109,11 +142,6 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
 
                 highlighted = new Color(r,g,b);
             }
-///             int r = Integer.parseInt(htmlColor.substring(1,3), 16);
-///             int g = Integer.parseInt(htmlColor.substring(3,5), 16);
-///             int b = Integer.parseInt(htmlColor.substring(5), 16);
-/// 
-///             highlighted = new Color(r, g, b);
         }
     }
 

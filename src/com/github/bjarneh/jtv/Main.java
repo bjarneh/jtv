@@ -172,6 +172,9 @@ public class Main {
 
         if( root != null ){
 
+            // We have an alternative font included [Monaco]
+            JtvTreeCellRenderer.registerFonts();
+
             // We have our own style, but others can be given
             Jtv.setLookAndFeel( theme );
 
