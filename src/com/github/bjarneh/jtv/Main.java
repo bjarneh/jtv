@@ -69,6 +69,7 @@ public class Main {
     static boolean help  = false;
     static boolean list  = false;
     static boolean noxt  = false;
+    static boolean font  = false; // mark true if user want's a new font
     static Getopt getopt = initParser();
 
 
@@ -118,6 +119,7 @@ public class Main {
 
         if( getopt.isSet("-font") ){
             JtvTreeCellRenderer.fontName = getopt.get("-font");
+            font = true;
         }
 
         if( getopt.isSet("-open") ){
@@ -154,6 +156,11 @@ public class Main {
             System.exit(0);
         }
 
+        if( font || list ){
+            // Register some alternative fonts
+            JtvTreeCellRenderer.registerFonts();
+        }
+
         if( list ){
             listAvailableFonts();
             listLookAndFeel();
@@ -171,9 +178,6 @@ public class Main {
 
 
         if( root != null ){
-
-            // We have an alternative font included [Monaco]
-            JtvTreeCellRenderer.registerFonts();
 
             // We have our own style, but others can be given
             Jtv.setLookAndFeel( theme );

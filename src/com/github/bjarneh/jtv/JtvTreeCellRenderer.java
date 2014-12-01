@@ -79,23 +79,28 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
     }
 
 
-    // Only Monaco currently
+    // Add some truetype fonts
     protected static void registerFonts(){
 
         try{
 
             InputStream is;
-            Font monacoTtf, monacoSized;
+            Font addTtf, addSized;
 
-            is = res.get().url("font/Monaco.ttf").openStream();
-            
-            monacoTtf   = Font.createFont(Font.TRUETYPE_FONT, is);
-            monacoSized = monacoTtf.deriveFont(Font.PLAIN, (float) fontSize );
+            String[] fontNames = {
+                "font/Monaco.ttf",
+                "font/SpecialElite.ttf"
+            };
 
             GraphicsEnvironment ge = 
                 GraphicsEnvironment.getLocalGraphicsEnvironment();
 
-            ge.registerFont( monacoSized );
+            for(String n: fontNames){
+                is = res.get().url(n).openStream();
+                addTtf   = Font.createFont(Font.TRUETYPE_FONT, is);
+                addSized = addTtf.deriveFont(Font.PLAIN, (float) fontSize );
+                ge.registerFont( addSized );
+            }
 
         //java.io.IOException || java.awt.FontFormatException
         }catch(Exception e){ 
