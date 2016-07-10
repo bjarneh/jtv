@@ -624,6 +624,7 @@ public class Jtv extends JPanel {
                 }
             }
 
+
             // multiple roots
             if( n.getUserObject() == null ){
 
@@ -640,7 +641,8 @@ public class Jtv extends JPanel {
                 String[] roots = new String[ files.size() ];
                 int i = 0;
                 for(File f: files){
-                    roots[i++] = f.getAbsolutePath();
+                    /// roots[i++] = f.getAbsolutePath();
+                    roots[i++] = f.getPath();
                 }
 
                 r2 = buildTree( roots );
@@ -648,7 +650,8 @@ public class Jtv extends JPanel {
             } else {
 
                 File orig = (File) n.getUserObject();
-                r2 = buildTree( orig.getAbsolutePath() );
+                /// r2 = buildTree( orig.getAbsolutePath() );
+                r2 = buildTree( orig.getPath() );
             }
 
             model.setRoot( r2 );
@@ -677,7 +680,7 @@ public class Jtv extends JPanel {
                 }
             }
 
-            // We found a path to scroll to
+            // We found a path to scroll/expand to
             if( scrollTo != null ){
                 tree.setSelectionPath( scrollTo );
                 tree.scrollPathToVisible( scrollTo );
