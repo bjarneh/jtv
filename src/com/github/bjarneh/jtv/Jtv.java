@@ -789,8 +789,10 @@ public class Jtv extends JPanel {
 
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 e.consume();
+                DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
                 for(JtvTreeNode n: marks){
                     n.toggleMark();
+                    model.nodeChanged( n );
                 }
                 marks.clear();
             }
