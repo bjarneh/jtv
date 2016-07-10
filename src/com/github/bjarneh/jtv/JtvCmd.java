@@ -15,9 +15,9 @@
 
 package com.github.bjarneh.jtv;
 
-/// import java.util.Map;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 
 /**
@@ -28,14 +28,24 @@ import java.io.IOException;
 
 public class JtvCmd {
 
+    static final long serialVersionUID = 0;
 
+    // Xterm (or alternative term) + arguments for it
+    private static String[] targs = null;
+    // Executable + arguments for it
+    private static String[] xargs = null;
+
+    // Defaults
     static String[] args = {
+
         "xterm",
         "-geometry","80x35",
         "-bw","0",
-        "-e","vim",
+        "-e",
+        "vim",
         null        // file name
     };
+
 
 
     public static void setOpener(String program){

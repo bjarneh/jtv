@@ -102,8 +102,9 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
                 ge.registerFont( addSized );
             }
 
+        // Multi-catch not supported in 1.5 compliant source
         //java.io.IOException || java.awt.FontFormatException
-        }catch(Exception e){ 
+        }catch( Exception e ){
             // not much we can do here..
             log.log(Level.INFO, e.getMessage(), e);
         }

@@ -27,6 +27,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,6 +64,7 @@ import javax.swing.text.DefaultEditorKit;
 
 // libb
 import com.github.bjarneh.utilz.res;
+import com.github.bjarneh.utilz.Tuple;
 
 
 /**
@@ -96,6 +98,7 @@ public class Jtv extends JPanel {
 
     private int currentMark = 0;
     private ArrayList<JtvTreeNode> marks = new ArrayList<JtvTreeNode>();
+    private boolean isHidden = false;
 
     private DefaultMutableTreeNode current;
 
@@ -388,6 +391,20 @@ public class Jtv extends JPanel {
     }
 
 
+    // Utility
+    private JtvTreeNode nodeFromTreePath(TreePath tp){
+        if( tp == null ){
+            return null;
+        }
+        JtvTreeNode selected = (JtvTreeNode) tp.getLastPathComponent();
+        return selected;
+    }
+
+    private JtvTreeNode currentNode(){
+        return nodeFromTreePath(tree.getSelectionPath());
+    }
+
+
     // Listen to mouse events
     private final MouseListener mouseListener = new MouseAdapter() {
 
@@ -569,13 +586,48 @@ public class Jtv extends JPanel {
             DefaultTreeModel model   = (DefaultTreeModel) tree.getModel();
             JtvTreeNode child, r2, n = (JtvTreeNode) model.getRoot();
 
+
             File file;
+            TreePath treePath, selection, scrollTo = null;
             ArrayList<File> files = new ArrayList<File>();
+
+            // HACK: The missing equals-method in TreePath makes
+            // this pretty strange, although the horrid Java tree-view
+            // classes and interfaces will always leave this messy,
+            // this is particularly funky where we have to compare
+            // with toString on the objects to see if they are equal.
+            //
+            // Store current location of cursor
+            selection = tree.getSelectionPath();
+
+            // Store list of expanded directories to re-expand
+            HashSet<File> expanded = new HashSet<File>();
+            // Store list of marked nodes to refill
+            HashSet<File> wasMarked = new HashSet<File>();
+
+            // Don't forget marked files
+            if( marks.size() > 0 ){
+                for(JtvTreeNode jtvNode: marks){
+                    wasMarked.add( (File) jtvNode.getUserObject() );
+                }
+            }
+
+            // Remember all expanded paths
+            Enumeration en = n.preorderEnumeration();
+            while(en.hasMoreElements()){
+                child = (JtvTreeNode) en.nextElement();
+                treePath = new TreePath(child.getPath());
+                if( !child.isLeaf() && 
+                    tree.isExpanded( treePath ) )
+                {
+                    expanded.add( (File) child.getUserObject() );
+                }
+            }
 
             // multiple roots
             if( n.getUserObject() == null ){
 
-                Enumeration en = n.children();
+                en = n.children();
                 while(en.hasMoreElements()){
                     child = (JtvTreeNode) en.nextElement();
                     file  = (File) child.getUserObject();
@@ -602,6 +654,34 @@ public class Jtv extends JPanel {
             model.setRoot( r2 );
             marks.clear();
 
+            // Update expanded paths
+            en = r2.preorderEnumeration();
+            while(en.hasMoreElements()){
+                child = (JtvTreeNode) en.nextElement();
+                file  = (File) child.getUserObject();
+                if( wasMarked.contains( file )){
+                    marks.add( child );
+                    child.toggleMark();
+                }
+                if( expanded.contains( file )){
+                    treePath = new TreePath(child.getPath());
+                    tree.expandPath(treePath);
+                }
+                if( selection != null ){
+                    // HACK: no equals method for TreePath of course see
+                    // comment above selection variable.
+                    TreePath tmp = new TreePath(child.getPath());
+                    if( tmp.toString().equals(selection.toString()) ){
+                        scrollTo = tmp;
+                    }
+                }
+            }
+
+            // We found a path to scroll to
+            if( scrollTo != null ){
+                tree.setSelectionPath( scrollTo );
+                tree.scrollPathToVisible( scrollTo );
+            }
         }
 
 
@@ -735,6 +815,49 @@ public class Jtv extends JPanel {
         }
 
 
+        void handleHideToggle(KeyEvent e){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+
+                DefaultTreeModel model  = (DefaultTreeModel) tree.getModel();
+                JtvTreeNode child, p, r = (JtvTreeNode) model.getRoot();
+
+                ArrayList<JtvTreeNode> removed = new ArrayList<JtvTreeNode>();
+
+                // Hide
+                if( !isHidden ){
+
+                    e.consume();
+
+                    if( marks.size() == 0 ){
+                        log.info("No marks found");
+                        return;
+                    }
+
+                    Enumeration en = r.preorderEnumeration();
+                    while(en.hasMoreElements()){
+                        child = (JtvTreeNode) en.nextElement();
+                        if( child.isLeaf() && !child.isMarked() ){
+                            removed.add( child );
+                        }
+                    }
+
+                    // Tuple<father,son>
+                    for(JtvTreeNode rm: removed){
+                        model.removeNodeFromParent( rm );
+                    }
+
+                }else{ // Show off
+                    handleRefresh(e);
+                }
+
+                // Toggle state
+                isHidden = !isHidden;
+            }
+
+        }
+
+
         public void keyPressed(KeyEvent e) {
 
             switch(e.getKeyCode()){
@@ -759,6 +882,7 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_SPACE : handleMark(e, false); break;
                 case KeyEvent.VK_F     : handleGoto(e); break;
                 case KeyEvent.VK_F5    : handleRefresh(e); break;
+                case KeyEvent.VK_H     : handleHideToggle(e); break;
             }
 
         }
