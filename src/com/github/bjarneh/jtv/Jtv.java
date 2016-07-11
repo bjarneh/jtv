@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Enumeration;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.awt.event.MouseEvent;
@@ -400,8 +401,21 @@ public class Jtv extends JPanel {
         return selected;
     }
 
+
     private JtvTreeNode currentNode(){
         return nodeFromTreePath(tree.getSelectionPath());
+    }
+
+
+    // Repaint every node without collapsing the tree
+    private void repaintAllNodes(){
+        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        JtvTreeNode child, r = (JtvTreeNode) model.getRoot();
+        Enumeration<?> en = r.preorderEnumeration();
+        while(en.hasMoreElements()){
+            child = (JtvTreeNode) en.nextElement();
+            model.nodeChanged( child );
+        }
     }
 
 
@@ -506,11 +520,7 @@ public class Jtv extends JPanel {
                             font.getStyle(), font.getSize() + 1);
                     dCellRenderer.setFont( next );
 
-                    //System.out.printf(" font: %s\n", next);
-
-                    // repaint tree with new font
-                    ((DefaultTreeModel)tree.getModel()).reload();
-
+                    repaintAllNodes();
                 }
             }
         }
@@ -540,8 +550,7 @@ public class Jtv extends JPanel {
                         Font next = new Font(font.getName(),
                                 font.getStyle(), font.getSize() - 1);
                         dCellRenderer.setFont( next );
-                        // repaint tree with new font
-                        ((DefaultTreeModel)tree.getModel()).reload();
+                        repaintAllNodes();
                     }
                 }
             }
@@ -750,11 +759,8 @@ public class Jtv extends JPanel {
                     Font next = jtvCellRenderer.nextFont();
                     jtvCellRenderer.setFont( next );
 
-                    //System.out.printf(" font: %s\n", next);
-
-                    // repaint tree with new font
-                    ((DefaultTreeModel)tree.getModel()).reload();
-
+                    log.info(""+ next);
+                    repaintAllNodes();
                 }
             }
 
@@ -774,6 +780,7 @@ public class Jtv extends JPanel {
 
                 if( n.isMarked() ){
                     marks.add( n );
+                    Collections.sort( marks );
                 }else{
                     marks.remove( n );
                 }

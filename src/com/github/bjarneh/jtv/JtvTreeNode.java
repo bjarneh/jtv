@@ -24,7 +24,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * @author bjarneh@ifi.uio.no
  */
 
-public class JtvTreeNode extends DefaultMutableTreeNode {
+public class JtvTreeNode extends DefaultMutableTreeNode
+    implements Comparable<JtvTreeNode> {
 
     static final long serialVersionUID = 0;
 
@@ -63,6 +64,15 @@ public class JtvTreeNode extends DefaultMutableTreeNode {
             return f.getName(); // looks better with less path :-)
         }
         return super.toString();
+    }
+
+    @Override
+    public int compareTo(JtvTreeNode other){
+
+        File otherFile = (File) other.getUserObject();
+        File myFile    = (File) this.getUserObject();
+
+        return myFile.compareTo(otherFile);
     }
 
 }
