@@ -55,9 +55,12 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.DefaultTreeCellEditor;
 /// import javax.swing.tree.ExpandVetoException;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.plaf.metal.OceanTheme;
 import javax.swing.plaf.metal.DefaultMetalTheme;
@@ -126,13 +129,24 @@ public class Jtv extends JPanel {
                 (TreeSelectionModel.SINGLE_TREE_SELECTION);
 
         LookAndFeel lookAndFeel = UIManager.getLookAndFeel();
+        DefaultTreeCellRenderer cellRenderer;
 
         // Display some better looking icons for Metal
         if( lookAndFeel != null &&
             lookAndFeel.getClass().getName().equals( regularStyle ) )
         {
-            tree.setCellRenderer(new JtvTreeCellRenderer());
+            cellRenderer = new JtvTreeCellRenderer();
+        }else{
+            cellRenderer = new DefaultTreeCellRenderer();
         }
+
+        // Add cellRenderer + cellListener to draw correct icons and
+        // listen to change events indicating file renaming
+        tree.setCellRenderer(cellRenderer);
+        DefaultTreeCellEditor editor =
+            new DefaultTreeCellEditor(tree,cellRenderer);
+        editor.addCellEditorListener( cellListener );
+        tree.setCellEditor(editor);
 
         // Add listeners, perhaps the markListener can be dropped
         tree.addTreeSelectionListener(markListener);
@@ -419,6 +433,20 @@ public class Jtv extends JPanel {
     }
 
 
+    // Listen to cell edit event
+    private final CellEditorListener cellListener = new CellEditorListener() {
+
+        public void editingCanceled(ChangeEvent e){
+            tree.setEditable(false);
+        }
+
+        public void editingStopped(ChangeEvent e){
+            tree.setEditable(false);
+        }
+
+    };
+
+
     // Listen to mouse events
     private final MouseListener mouseListener = new MouseAdapter() {
 
@@ -428,8 +456,8 @@ public class Jtv extends JPanel {
             TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
 
             if( selRow != -1 && e.getClickCount() == 2 ) {
-                DefaultMutableTreeNode node = 
-                    (DefaultMutableTreeNode) selPath.getLastPathComponent();
+                JtvTreeNode node =
+                    (JtvTreeNode) selPath.getLastPathComponent();
                 if( node.isLeaf() ){
                     e.consume();
                     openFile( node );
@@ -743,6 +771,19 @@ public class Jtv extends JPanel {
         }
 
 
+        void handleRename(KeyEvent e){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+                if( current != null ){
+                    e.consume();
+                    File file = (File) current.getUserObject();
+                    tree.setEditable(true);
+                    tree.startEditingAtPath(new TreePath(current.getPath()));
+                }
+            }
+        }
+
+
         void handleFontCycle(KeyEvent e){
 
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
@@ -888,7 +929,8 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_X     : handleTerm(e); break;
                 case KeyEvent.VK_A     : handleNewFile(e); break;
                 case KeyEvent.VK_D     : handleDeleteFile(e); break;
-                case KeyEvent.VK_R     : handleRemoveMarks(e); break;
+                case KeyEvent.VK_R     : handleRename(e); break;
+                case KeyEvent.VK_L     : handleRemoveMarks(e); break;
                 case KeyEvent.VK_S     :
                 case KeyEvent.VK_K     : handleMark(e, true); break;
                 case KeyEvent.VK_SPACE : handleMark(e, false); break;

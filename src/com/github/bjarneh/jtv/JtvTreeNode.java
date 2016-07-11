@@ -75,4 +75,19 @@ public class JtvTreeNode extends DefaultMutableTreeNode
         return myFile.compareTo(otherFile);
     }
 
+    @Override
+    public void setUserObject(Object userObj){
+        if( userObj instanceof String ){
+            File current = (File) getUserObject();
+            File parent  = current.getParentFile();
+            File present = new File(parent, userObj.toString());
+            if( current.renameTo( present ) ){
+                userObj = present;
+            }else{
+                throw new RuntimeException("Could not rename file");
+            }
+        }
+        super.setUserObject(userObj);
+    }
+
 }
