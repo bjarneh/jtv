@@ -121,7 +121,7 @@ public class Jtv extends JPanel {
         " th { text-align:right; }                                      "+
         " td { font-weight:normal; }                                    "+
         " table { font-family: monospace; padding:20px; color:#ffffff;} "+
-        " div { width:250px; height:295px; border: 1px solid white;}    "+
+        " div { border: 1px solid white;}                               "+
         " html { background-color: rgb(64,64,64);}                      "+
         " </style>                                                      "+
         " </head>                                                       "+
@@ -141,6 +141,7 @@ public class Jtv extends JPanel {
         "  <tr><th>Ctrl+F</th> Goto next mark  </td></tr>               "+
         "  <tr><th>Ctrl+L</th> Remove marks  </td></tr>                 "+
         "  <tr><th>Ctrl+H</th><td>Hide toggle marked files </td></tr>   "+
+        "  <tr><th>Ctrl+E</th><td>Cycle through fonts</td></tr>         "+
         " </table>                                                      "+
         " </div>                                                        "+
         "<html>                                                         ";
