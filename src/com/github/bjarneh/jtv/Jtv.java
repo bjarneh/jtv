@@ -40,6 +40,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.InputEvent;
 import javax.swing.JFrame;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.UIManager;
@@ -49,6 +51,8 @@ import javax.swing.InputMap;
 import javax.swing.KeyStroke;
 import javax.swing.ImageIcon;
 import javax.swing.LookAndFeel;
+import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -104,9 +108,42 @@ public class Jtv extends JPanel {
     private ArrayList<JtvTreeNode> marks = new ArrayList<JtvTreeNode>();
     private boolean isHidden = false;
 
+    private JDialog helpMenu;
     private DefaultMutableTreeNode current;
 
     private static final Logger log = Logger.getLogger(Jtv.class.getName());
+
+
+    public static final String megaHelp =
+        "<html>                                                         "+
+        " <head>                                                        "+
+        " <style type='text/css'>                                       "+
+        " th { text-align:right; }                                      "+
+        " td { font-weight:normal; }                                    "+
+        " table { font-family: monospace; padding:20px; color:#ffffff;} "+
+        " div { width:250px; height:295px; border: 1px solid white;}    "+
+        " html { background-color: rgb(64,64,64);}                      "+
+        " </style>                                                      "+
+        " </head>                                                       "+
+        " <div'>                                                        "+
+        " <table>                                                       "+
+        "  <tr><th>Ctrl+K</th> <td>Toggle help </td></tr>               "+
+        "  <tr><th>Ctrl+M</th> Toggle maximize </td></tr>               "+
+        "  <tr><th>Ctrl+[+]</th> Make jtv bigger </td></tr>             "+
+        "  <tr><th>Ctrl+[-]</th> Make jtv smaller </td></tr>            "+
+        "  <tr><th>Ctrl+N</th> Back to default size </td></tr>          "+
+        "  <tr><th>Alt+[+]</th> Make jtv font bigger </td></tr>         "+
+        "  <tr><th>Alt+[-]</th> Make jtv font smaller </td></tr>        "+
+        "  <tr><th>Ctrl+0</th> Move jtv to (0,0) </td></tr>             "+
+        "  <tr><th>Return</th> Expand dir or open file </td></tr>       "+
+        "  <tr><th>F5</th> Refresh file tree </td></tr>                 "+
+        "  <tr><th>Space</th> Toggle mark </td></tr>                    "+
+        "  <tr><th>Ctrl+F</th> Goto next mark  </td></tr>               "+
+        "  <tr><th>Ctrl+L</th> Remove marks  </td></tr>                 "+
+        "  <tr><th>Ctrl+H</th><td>Hide toggle marked files </td></tr>   "+
+        " </table>                                                      "+
+        " </div>                                                        "+
+        "<html>                                                         ";
 
 
     public Jtv() {
@@ -116,7 +153,7 @@ public class Jtv extends JPanel {
 
     public void addTree(DefaultMutableTreeNode root){
 
-        tree = new JTree(root);
+        tree = new JtvTree(root);
 
         // More than one dir is given
         if( root.getUserObject() == null ){
@@ -148,6 +185,9 @@ public class Jtv extends JPanel {
         editor.addCellEditorListener( cellListener );
         tree.setCellEditor(editor);
 
+        // Turn on tooltips
+        ToolTipManager.sharedInstance().registerComponent(tree);
+
         // Add listeners, perhaps the markListener can be dropped
         tree.addTreeSelectionListener(markListener);
         tree.addMouseListener(mouseListener);
@@ -158,6 +198,18 @@ public class Jtv extends JPanel {
         scrollPane.setPreferredSize(new Dimension(initWidth, initHeight));
 
         add(scrollPane);
+
+        // Help menu with html JLabel
+        helpMenu = new JDialog(topFrame, "help", true);
+        helpMenu.setUndecorated(true);
+
+        JLabel p = new JLabel( megaHelp );
+        helpMenu.addKeyListener( helpListener );
+        helpMenu.add( p );
+        //helpMenu.setLocationRelativeTo( scrollPane );
+        helpMenu.setLocationRelativeTo( null );
+        helpMenu.pack();
+        helpMenu.setVisible(false);
     }
 
 
@@ -478,7 +530,7 @@ public class Jtv extends JPanel {
     };
 
 
-    // Listen to a few key events
+    // Listen to a few key events [JTree]
     final KeyListener keyListener = new KeyAdapter() {
 
         void handleEnter(KeyEvent e){
@@ -776,8 +828,8 @@ public class Jtv extends JPanel {
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 if( current != null ){
                     e.consume();
-                    File file = (File) current.getUserObject();
                     tree.setEditable(true);
+                    File file = (File) current.getUserObject();
                     tree.startEditingAtPath(new TreePath(current.getPath()));
                 }
             }
@@ -911,6 +963,16 @@ public class Jtv extends JPanel {
         }
 
 
+        void handleHoverHelp(KeyEvent e){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+                e.consume();
+                //JtvTree.toggleMegaMenu();
+                helpMenu.setVisible( !helpMenu.isVisible() );
+            }
+        }
+
+
+
         public void keyPressed(KeyEvent e) {
 
             switch(e.getKeyCode()){
@@ -932,17 +994,18 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_R     : handleRename(e); break;
                 case KeyEvent.VK_L     : handleRemoveMarks(e); break;
                 case KeyEvent.VK_S     :
-                case KeyEvent.VK_K     : handleMark(e, true); break;
                 case KeyEvent.VK_SPACE : handleMark(e, false); break;
                 case KeyEvent.VK_F     : handleGoto(e); break;
                 case KeyEvent.VK_F5    : handleRefresh(e); break;
                 case KeyEvent.VK_H     : handleHideToggle(e); break;
+                case KeyEvent.VK_K     : handleHoverHelp(e); break;
             }
 
         }
 
 
         // not much here :-)
+        @Override
         public void keyReleased(KeyEvent e) {
 
             switch(e.getKeyCode()){
@@ -951,5 +1014,38 @@ public class Jtv extends JPanel {
         }
 
     };
+
+
+
+    // Listen to a few key events [JDialog]
+    final KeyListener helpListener = new KeyAdapter() {
+
+        void handleHoverHelp(KeyEvent e){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+                e.consume();
+                helpMenu.setVisible( false );
+            }
+        }
+
+        public void keyPressed(KeyEvent e) {
+
+            switch(e.getKeyCode()){
+                default: break;
+                case KeyEvent.VK_K  : handleHoverHelp(e); break;
+            }
+
+        }
+
+        // not much here :-)
+        @Override
+        public void keyReleased(KeyEvent e) {
+
+            switch(e.getKeyCode()){
+                default: break;
+            }
+        }
+
+    };
+
 
 }

@@ -103,7 +103,7 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
         //java.io.IOException || java.awt.FontFormatException
         }catch( Exception e ){
             // not much we can do here..
-            log.log(Level.INFO, e.getMessage(), e);
+            log.log(Level.SEVERE, e.getMessage(), e);
         }
 
     }
@@ -119,11 +119,15 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
 
     public static Font[] allFonts(){
         if( fonts == null ){
+            long t1, t0 = System.currentTimeMillis();
             fonts = GraphicsEnvironment.getLocalGraphicsEnvironment()
                                        .getAllFonts();
             for(int i = 0; i < fonts.length; i++){
                 fonts[i] = new Font(fonts[i].getName(),fontStyle,fontSize);
             }
+            t1 = System.currentTimeMillis();
+            log.log(Level.INFO,"Loaded "+fonts.length + " fonts in "+
+                    (t1-t0) + " milliseconds");
         }
         return fonts;
     }
