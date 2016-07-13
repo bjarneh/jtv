@@ -850,7 +850,10 @@ public class Jtv extends JPanel {
                     JtvTreeCellRenderer jtvCellRenderer =
                         (JtvTreeCellRenderer) cellRenderer;
 
+                    Font font = jtvCellRenderer.getFont();
                     Font next = jtvCellRenderer.nextFont();
+                    next = new Font(next.getName(),
+                            next.getStyle(), font.getSize());
                     jtvCellRenderer.setFont( next );
 
                     log.info(""+ next);
@@ -869,6 +872,10 @@ public class Jtv extends JPanel {
 
                 JtvTreeNode n = (JtvTreeNode)
                     tree.getLastSelectedPathComponent();
+
+                if( n == null ){
+                    return;
+                }
 
                 n.toggleMark();
 
