@@ -112,8 +112,40 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
     protected Font nextFont(){
         if( fonts == null ){
             allFonts(); // fonts gets filled
+            fontIndex = fontHack();
         }
-        return fonts[fontIndex++ % fonts.length];
+        return fonts[++fontIndex % fonts.length];
+    }
+
+
+    protected Font prevFont(){
+        if( fonts == null ){
+            allFonts(); // fonts gets filled
+            fontIndex = fontHack();
+        }
+        fontIndex--;
+        if( fontIndex < 0 ){
+            fontIndex += fonts.length;
+        }
+        return fonts[ fontIndex % fonts.length ];
+    }
+
+
+    // Look for own Font, NOTE: Font array does not have to be sorted
+    // and cannot be (binary) searched, Fonts do not implement comparable.
+    private int fontHack(){
+        if( fonts != null ){
+            int currIndex = 0;
+            String currFont = getFont().toString();
+            for(int i = 0; i < fonts.length; i++){
+                if(currFont.equals(fonts[i].toString())){
+                    currIndex = i;
+                    break;
+                }
+            }
+            return currIndex;
+        }
+        return 0;
     }
 
 

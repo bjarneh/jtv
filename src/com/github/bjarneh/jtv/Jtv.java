@@ -141,7 +141,8 @@ public class Jtv extends JPanel {
         "  <tr><th>Ctrl+F</th> Goto next mark  </td></tr>               "+
         "  <tr><th>Ctrl+L</th> Remove marks  </td></tr>                 "+
         "  <tr><th>Ctrl+H</th><td>Hide toggle marked files </td></tr>   "+
-        "  <tr><th>Ctrl+E</th><td>Cycle through fonts</td></tr>         "+
+        "  <tr><th>Ctrl+E</th><td>Cycle font forwards</td></tr>         "+
+        "  <tr><th>Ctrl+S</th><td>Cycle font backwards</td></tr>        "+
         " </table>                                                      "+
         " </div>                                                        "+
         "<html>                                                         ";
@@ -837,7 +838,7 @@ public class Jtv extends JPanel {
         }
 
 
-        void handleFontCycle(KeyEvent e){
+        void handleFontCycle(KeyEvent e, boolean forward){
 
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
 
@@ -851,7 +852,12 @@ public class Jtv extends JPanel {
                         (JtvTreeCellRenderer) cellRenderer;
 
                     Font font = jtvCellRenderer.getFont();
-                    Font next = jtvCellRenderer.nextFont();
+                    Font next;
+                    if( forward ){
+                        next = jtvCellRenderer.nextFont();
+                    }else{
+                        next = jtvCellRenderer.prevFont();
+                    }
                     next = new Font(next.getName(),
                             next.getStyle(), font.getSize());
                     jtvCellRenderer.setFont( next );
@@ -991,7 +997,8 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_C     : handleQuit(e, false); break;
                 case KeyEvent.VK_PLUS  : handleBigger(e); break;
                 case KeyEvent.VK_MINUS : handleSmaller(e); break;
-                case KeyEvent.VK_E     : handleFontCycle(e); break;
+                case KeyEvent.VK_E     : handleFontCycle(e, true); break;
+                case KeyEvent.VK_S     : handleFontCycle(e, false); break;
                 case KeyEvent.VK_F11   : handleMaximize(e, false); break;
                 case KeyEvent.VK_M     : handleMaximize(e, true); break;
                 case KeyEvent.VK_N     : handleNormalize(e); break;
@@ -1001,7 +1008,6 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_D     : handleDeleteFile(e); break;
                 case KeyEvent.VK_R     : handleRename(e); break;
                 case KeyEvent.VK_L     : handleRemoveMarks(e); break;
-                case KeyEvent.VK_S     :
                 case KeyEvent.VK_SPACE : handleMark(e, false); break;
                 case KeyEvent.VK_F     : handleGoto(e); break;
                 case KeyEvent.VK_F5    : handleRefresh(e); break;
