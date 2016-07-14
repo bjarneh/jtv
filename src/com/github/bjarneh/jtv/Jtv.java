@@ -134,6 +134,7 @@ public class Jtv extends JPanel {
         "  <tr><th>Ctrl+N</th> Back to default size </td></tr>          "+
         "  <tr><th>Alt+[+]</th> Make jtv font bigger </td></tr>         "+
         "  <tr><th>Alt+[-]</th> Make jtv font smaller </td></tr>        "+
+        "  <tr><th>Alt+N</th> Back to default font size </td></tr>      "+
         "  <tr><th>Ctrl+0</th> Move jtv to (0,0) </td></tr>             "+
         "  <tr><th>Return</th> Expand dir or open file </td></tr>       "+
         "  <tr><th>F5</th> Refresh file tree </td></tr>                 "+
@@ -567,6 +568,23 @@ public class Jtv extends JPanel {
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 e.consume();
                 resetSize();
+            }else if( (e.getModifiers() & KeyEvent.ALT_MASK) != 0 ){
+
+                TreeCellRenderer cellRenderer = tree.getCellRenderer();
+
+                if( cellRenderer instanceof DefaultTreeCellRenderer ){
+
+                    e.consume();
+
+                    DefaultTreeCellRenderer dCellRenderer =
+                        (DefaultTreeCellRenderer) cellRenderer;
+
+                    Font font = dCellRenderer.getFont();
+                    Font next = new Font(font.getName(), font.getStyle(), 12);
+                    dCellRenderer.setFont( next );
+
+                    repaintAllNodes();
+                }
             }
         }
 
