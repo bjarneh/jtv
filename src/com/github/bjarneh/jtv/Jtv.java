@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Color;
 import java.awt.Font;
@@ -39,6 +40,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.InputEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import javax.swing.JFrame;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -52,6 +55,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ImageIcon;
 import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.ToolTipManager;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -109,10 +113,10 @@ public class Jtv extends JPanel {
     private boolean isHidden = false;
 
     private JDialog helpMenu;
+    private JtvTextField cmdInput;
     private DefaultMutableTreeNode current;
 
     private static final Logger log = Logger.getLogger(Jtv.class.getName());
-
 
     public static final String megaHelp =
         "<html>                                                         "+
@@ -144,13 +148,15 @@ public class Jtv extends JPanel {
         "  <tr><th>Ctrl+H</th><td>Hide toggle marked files </td></tr>   "+
         "  <tr><th>Ctrl+E</th><td>Cycle font forwards</td></tr>         "+
         "  <tr><th>Ctrl+S</th><td>Cycle font backwards</td></tr>        "+
+        "  <tr><th>Ctrl+Y</th><td>Open command line</td></tr>           "+
         " </table>                                                      "+
         " </div>                                                        "+
         "<html>                                                         ";
 
 
     public Jtv() {
-        super(new GridLayout(1,0));
+        //super(new GridLayout(2,1));
+        super(new BorderLayout());
     }
 
 
@@ -195,11 +201,13 @@ public class Jtv extends JPanel {
         tree.addTreeSelectionListener(markListener);
         tree.addMouseListener(mouseListener);
         tree.addKeyListener(keyListener);
+        tree.addKeyListener(comboListener);
 
         // Create the scroll pane and add the tree to it. 
         JScrollPane scrollPane = new JScrollPane(tree);
         scrollPane.setPreferredSize(new Dimension(initWidth, initHeight));
 
+        // Add the actual treeview inside a scroller
         add(scrollPane);
 
         // Help menu with html JLabel
@@ -209,12 +217,60 @@ public class Jtv extends JPanel {
         JLabel p = new JLabel( megaHelp );
         helpMenu.addKeyListener( helpListener );
         helpMenu.add( p );
-        //helpMenu.setLocationRelativeTo( scrollPane );
-        helpMenu.setLocationRelativeTo( null );
+        helpMenu.setLocationRelativeTo( topFrame );
+        //helpMenu.setLocationRelativeTo( null );
         helpMenu.pack();
         helpMenu.setVisible(false);
     }
 
+
+    public static void setLookAndFeel(String style){
+
+        try {
+
+            UIManager.setLookAndFeel( style );
+
+        } catch (Exception e) {
+            log.log(Level.SEVERE, e.getMessage(), e); 
+        }
+
+    }
+
+
+    public void createAndShowGUI(boolean useBruce) {
+
+        // Create and set up the window.
+        JFrame frame = new JFrame("jtv");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        if( useBruce ){
+            frame.setIconImage(res.get().icon("img/bruce.png").getImage());
+        }else{
+            frame.setIconImage(res.get().icon("img/ninja.png").getImage());
+        }
+
+        Container pane = frame.getContentPane();
+        pane.add(this, BorderLayout.CENTER);
+
+        // Add an invisible font selector SOUTH
+        cmdInput = new JtvTextField();
+        cmdInput.setBackground(new Color(64,64,64));
+        cmdInput.setForeground(Color.WHITE);
+        cmdInput.setCaretColor(Color.WHITE);
+        cmdInput.setFocusTraversalKeysEnabled(false);// !TAB
+        cmdInput.setVisible(false);
+        cmdInput.addKeyListener(cmdListener);
+        cmdInput.addKeyListener(comboListener);
+        pane.add(cmdInput, BorderLayout.SOUTH);
+
+        // Let the window manager decide placement
+        frame.setLocationByPlatform(true);
+        frame.pack();
+        frame.setVisible(true);
+
+        topFrame = frame;
+
+    }
 
     private static JtvTreeNode getTree(File file){
         JtvTreeNode node = new JtvTreeNode(file);
@@ -411,40 +467,6 @@ public class Jtv extends JPanel {
     }
 
 
-    public static void setLookAndFeel(String style){
-
-        try {
-
-            UIManager.setLookAndFeel( style );
-
-        } catch (Exception e) {
-            log.log(Level.SEVERE, e.getMessage(), e); 
-        }
-
-    }
-
-
-    public void createAndShowGUI(boolean useBruce) {
-
-        // Create and set up the window.
-        JFrame frame = new JFrame("jtv");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        if( useBruce ){
-            frame.setIconImage(res.get().icon("img/bruce.png").getImage());
-        }else{
-            frame.setIconImage(res.get().icon("img/ninja.png").getImage());
-        }
-
-        frame.add(this);
-        // Let the window manager decide placement
-        frame.setLocationByPlatform(true);
-        frame.pack();
-        frame.setVisible(true);
-
-        topFrame = frame;
-
-    }
 
 
     public boolean touch( File file ){
@@ -476,15 +498,30 @@ public class Jtv extends JPanel {
     }
 
 
-    // Repaint every node without collapsing the tree
-    private void repaintAllNodes(){
-        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
-        JtvTreeNode child, r = (JtvTreeNode) model.getRoot();
-        Enumeration<?> en = r.preorderEnumeration();
+    private boolean gotoPath(String pattern){
+
+        DefaultTreeModel model   = (DefaultTreeModel) tree.getModel();
+        JtvTreeNode child, r2, n = (JtvTreeNode) model.getRoot();
+
+        boolean foundMatch = false;
+        File file;
+        TreePath p;
+        Enumeration<?> en = n.preorderEnumeration();
         while(en.hasMoreElements()){
             child = (JtvTreeNode) en.nextElement();
-            model.nodeChanged( child );
+            file  = (File) child.getUserObject();
+            if(file.getName().indexOf(pattern) > -1
+               || file.getName().matches(pattern))
+            {
+                p = new TreePath(child.getPath());
+                tree.setSelectionPath( p );
+                tree.scrollPathToVisible( p );
+                foundMatch = true;
+                break;
+            }
         }
+
+        return foundMatch;
     }
 
 
@@ -500,6 +537,25 @@ public class Jtv extends JPanel {
         }
 
     };
+
+
+
+    // Hide or show the command input
+    private void hideToggleCommand(){
+        Container pane = topFrame.getContentPane();
+        if( cmdInput.isVisible() ){
+            cmdInput.storeCaretPos();
+            cmdInput.setVisible(false);
+            pane.remove(cmdInput);
+        }else{
+            cmdInput.setVisible(true);
+            pane.add(cmdInput, BorderLayout.SOUTH);
+            cmdInput.requestFocus();
+        }
+        SwingUtilities.updateComponentTreeUI(topFrame);
+        cmdInput.restoreCaretPos();
+    }
+
 
 
     // Listen to mouse events
@@ -533,6 +589,120 @@ public class Jtv extends JPanel {
     };
 
 
+    // Listen to a few key events [JDialog]
+    final KeyListener helpListener = new KeyAdapter() {
+
+        void handleHoverHelp(KeyEvent e){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+                e.consume();
+                helpMenu.setVisible( false );
+            }
+        }
+
+        public void keyPressed(KeyEvent e) {
+
+            switch(e.getKeyCode()){
+                default: break;
+                case KeyEvent.VK_K  : handleHoverHelp(e); break;
+            }
+
+        }
+
+        // not much here :-)
+        @Override
+        public void keyReleased(KeyEvent e) {
+
+            switch(e.getKeyCode()){
+                default: break;
+            }
+        }
+
+    };
+
+
+    // Listen to a few key events [JTextField]
+    final KeyListener cmdListener = new KeyAdapter() {
+
+
+        void handleExecute(KeyEvent e){
+
+            e.consume();
+
+            Font f;
+            Tuple<Integer,String> tup = cmdInput.getCommand();
+
+            switch( tup.getLeft() ){
+            case JtvTextField.FONT_SELECT:
+                f = JtvTreeCellRenderer.getFussyFont(tup.getRight(),false);
+                if( f != null ){
+                    cmdInput.storeCaretPos();
+                    cmdInput.setText("f:"+f.getName());
+                    TreeCellRenderer cellRenderer = tree.getCellRenderer();
+                    JtvTreeCellRenderer jtvCellRenderer =
+                        (JtvTreeCellRenderer) cellRenderer;
+                    jtvCellRenderer.setFont( f );
+                    cmdInput.setFont( f );
+                    SwingUtilities.updateComponentTreeUI(topFrame);
+                    cmdInput.restoreCaretPos();
+                }
+                break;
+            case JtvTextField.PATH_GREP:
+                if( ! gotoPath( tup.getRight() ) ){
+                    cmdInput.flashField(Color.RED, Color.WHITE, 20, 40);
+                }
+                break;
+            default:
+                cmdInput.flashField(Color.RED, Color.WHITE, 20, 40);
+                break;
+            }
+        }
+
+
+        void handleComplete(KeyEvent e){
+
+            e.consume();
+
+            Font f;
+            Tuple<Integer,String> tup = cmdInput.getCommand();
+
+            switch( tup.getLeft() ){
+            case JtvTextField.FONT_SELECT:
+                f = JtvTreeCellRenderer.getFussyFont(tup.getRight(),true);
+                if( f != null ){
+                    cmdInput.setText("f:"+f.getName());
+                }
+                break;
+            // No auto-complete for grep or path
+            default:
+                cmdInput.flashField(Color.BLACK, Color.WHITE, 20, 40);
+                break;
+            }
+        }
+
+
+        public void keyPressed(KeyEvent e) {
+
+            switch(e.getKeyCode()){
+                default: break;
+                case KeyEvent.VK_TAB    : handleComplete(e); break;
+                case KeyEvent.VK_ENTER  : handleExecute(e); break;
+            }
+
+        }
+
+        // not much here :-)
+        @Override
+        public void keyReleased(KeyEvent e) {
+
+            switch(e.getKeyCode()){
+                default: break;
+            }
+        }
+
+    };
+
+
+
     // Listen to a few key events [JTree]
     final KeyListener keyListener = new KeyAdapter() {
 
@@ -552,6 +722,160 @@ public class Jtv extends JPanel {
             }
 
         }
+
+
+        void handleNewFile(KeyEvent e){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0  ){
+                e.consume();
+                if( current != null ){
+                    File parent = (File) current.getUserObject();
+                    if( parent.isDirectory() ){
+                        String fname = 
+                            JOptionPane.showInputDialog(
+                                    topFrame, 
+                                    "Name:",
+                                    "Add file",
+                                    JOptionPane.INFORMATION_MESSAGE);
+                        if( fname != null && !fname.matches("^\\s*$") ){
+                            File son = new File( parent, fname );
+                            if( touch( son ) ){
+                                JtvTreeNode node = new JtvTreeNode( son );
+                                current.add( node );
+                                nodeChanged( current );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+        void handleDeleteFile(KeyEvent e){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+                if( current != null ){
+                    File file = (File) current.getUserObject();
+                    if( file.isFile() ){
+                        e.consume();
+                        int reply = JOptionPane.showConfirmDialog(topFrame,
+                                "Are you sure?", "Delete: "+file.getName(),
+                                JOptionPane.YES_NO_OPTION);
+                        if( reply == JOptionPane.YES_OPTION ){
+                            deleteFile( current );
+                        }
+                    }
+                }
+            }
+        }
+
+
+        void handleRename(KeyEvent e){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+                if( current != null ){
+                    e.consume();
+                    tree.setEditable(true);
+                    File file = (File) current.getUserObject();
+                    tree.startEditingAtPath(new TreePath(current.getPath()));
+                }
+            }
+        }
+
+
+        void handleMark(KeyEvent e, boolean needCtrl){
+
+            if( !needCtrl || (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+
+                e.consume();
+
+                JtvTreeNode n = (JtvTreeNode)
+                    tree.getLastSelectedPathComponent();
+
+                if( n == null ){
+                    return;
+                }
+
+                n.toggleMark();
+
+                if( n.isMarked() ){
+                    marks.add( n );
+                    Collections.sort( marks );
+                }else{
+                    marks.remove( n );
+                }
+
+                DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+                model.nodeChanged( n );
+            }
+
+        }
+
+
+        void handleRemoveMarks(KeyEvent e){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+                e.consume();
+                DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+                for(JtvTreeNode n: marks){
+                    n.toggleMark();
+                    model.nodeChanged( n );
+                }
+                marks.clear();
+            }
+        }
+
+
+        void handleGoto(KeyEvent e){
+
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+
+                e.consume();
+
+                TreePath p;
+                JtvTreeNode n;
+
+                if( marks.size() > 0 ){
+                    currentMark = (++currentMark) % marks.size();
+                    n = marks.get(currentMark);
+                    p = new TreePath(n.getPath());
+                    tree.setSelectionPath( p );
+                    tree.scrollPathToVisible( p );
+                }
+            }
+
+        }
+
+
+        public void keyPressed(KeyEvent e) {
+
+            switch(e.getKeyCode()){
+                default: break;
+                case KeyEvent.VK_ENTER : handleEnter(e); break;
+                case KeyEvent.VK_A     : handleNewFile(e); break;
+                case KeyEvent.VK_D     : handleDeleteFile(e); break;
+                case KeyEvent.VK_R     : handleRename(e); break;
+                case KeyEvent.VK_L     : handleRemoveMarks(e); break;
+                case KeyEvent.VK_SPACE : handleMark(e, false); break;
+                case KeyEvent.VK_F     : handleGoto(e); break;
+            }
+
+        }
+
+
+        // not much here :-)
+        @Override
+        public void keyReleased(KeyEvent e) {
+
+            switch(e.getKeyCode()){
+                default: break;
+            }
+        }
+
+    };
+
+
+    // Listen to key events for multiple components
+    final KeyListener comboListener = new KeyAdapter() {
 
 
         void handleMaximize(KeyEvent e, boolean needsCtrl){
@@ -582,8 +906,10 @@ public class Jtv extends JPanel {
                     Font font = dCellRenderer.getFont();
                     Font next = new Font(font.getName(), font.getStyle(), 12);
                     dCellRenderer.setFont( next );
-
-                    repaintAllNodes();
+                    cmdInput.storeCaretPos();
+                    cmdInput.setFont( next );
+                    SwingUtilities.updateComponentTreeUI(topFrame);
+                    cmdInput.restoreCaretPos();
                 }
             }
         }
@@ -608,19 +934,22 @@ public class Jtv extends JPanel {
 
                 TreeCellRenderer cellRenderer = tree.getCellRenderer();
 
-                if( cellRenderer instanceof DefaultTreeCellRenderer ){
+                if( cellRenderer instanceof JtvTreeCellRenderer ){
 
                     e.consume();
 
-                    DefaultTreeCellRenderer dCellRenderer =
-                        (DefaultTreeCellRenderer) cellRenderer;
+                    JtvTreeCellRenderer jtvCellRenderer =
+                        (JtvTreeCellRenderer) cellRenderer;
 
-                    Font font = dCellRenderer.getFont();
+                    Font font = jtvCellRenderer.getFont();
                     Font next = new Font(font.getName(),
                             font.getStyle(), font.getSize() + 1);
-                    dCellRenderer.setFont( next );
-
-                    repaintAllNodes();
+                    jtvCellRenderer.setFont( next );
+                    JtvTreeCellRenderer.currFontSize = font.getSize() + 1;
+                    cmdInput.storeCaretPos();
+                    cmdInput.setFont( next );
+                    SwingUtilities.updateComponentTreeUI(topFrame);
+                    cmdInput.restoreCaretPos();
                 }
             }
         }
@@ -637,20 +966,24 @@ public class Jtv extends JPanel {
 
                 TreeCellRenderer cellRenderer = tree.getCellRenderer();
 
-                if( cellRenderer instanceof DefaultTreeCellRenderer ){
+                if( cellRenderer instanceof JtvTreeCellRenderer ){
 
                     e.consume();
 
-                    DefaultTreeCellRenderer dCellRenderer =
-                        (DefaultTreeCellRenderer) cellRenderer;
+                    JtvTreeCellRenderer jtvCellRenderer =
+                        (JtvTreeCellRenderer) cellRenderer;
 
-                    Font font = dCellRenderer.getFont();
+                    Font font = jtvCellRenderer.getFont();
 
                     if( font.getSize() > 1 ){
                         Font next = new Font(font.getName(),
                                 font.getStyle(), font.getSize() - 1);
-                        dCellRenderer.setFont( next );
-                        repaintAllNodes();
+                        jtvCellRenderer.setFont( next );
+                        JtvTreeCellRenderer.currFontSize = font.getSize() -1;
+                        cmdInput.storeCaretPos();
+                        cmdInput.setFont( next );
+                        SwingUtilities.updateComponentTreeUI(topFrame);
+                        cmdInput.restoreCaretPos();
                     }
                 }
             }
@@ -722,7 +1055,7 @@ public class Jtv extends JPanel {
             }
 
             // Remember all expanded paths
-            Enumeration en = n.preorderEnumeration();
+            Enumeration<?> en = n.preorderEnumeration();
             while(en.hasMoreElements()){
                 child = (JtvTreeNode) en.nextElement();
                 treePath = new TreePath(child.getPath());
@@ -797,65 +1130,6 @@ public class Jtv extends JPanel {
         }
 
 
-        void handleNewFile(KeyEvent e){
-
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0  ){
-                e.consume();
-                if( current != null ){
-                    File parent = (File) current.getUserObject();
-                    if( parent.isDirectory() ){
-                        String fname = 
-                            JOptionPane.showInputDialog(
-                                    topFrame, 
-                                    "Name:",
-                                    "Add file",
-                                    JOptionPane.INFORMATION_MESSAGE);
-                        if( fname != null && !fname.matches("^\\s*$") ){
-                            File son = new File( parent, fname );
-                            if( touch( son ) ){
-                                JtvTreeNode node = new JtvTreeNode( son );
-                                current.add( node );
-                                nodeChanged( current );
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-
-        void handleDeleteFile(KeyEvent e){
-
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
-                if( current != null ){
-                    File file = (File) current.getUserObject();
-                    if( file.isFile() ){
-                        e.consume();
-                        int reply = JOptionPane.showConfirmDialog(topFrame,
-                                "Are you sure?", "Delete: "+file.getName(),
-                                JOptionPane.YES_NO_OPTION);
-                        if( reply == JOptionPane.YES_OPTION ){
-                            deleteFile( current );
-                        }
-                    }
-                }
-            }
-        }
-
-
-        void handleRename(KeyEvent e){
-
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
-                if( current != null ){
-                    e.consume();
-                    tree.setEditable(true);
-                    File file = (File) current.getUserObject();
-                    tree.startEditingAtPath(new TreePath(current.getPath()));
-                }
-            }
-        }
-
-
         void handleFontCycle(KeyEvent e, boolean forward){
 
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
@@ -879,73 +1153,11 @@ public class Jtv extends JPanel {
                     next = new Font(next.getName(),
                             next.getStyle(), font.getSize());
                     jtvCellRenderer.setFont( next );
-
+                    cmdInput.storeCaretPos();
+                    cmdInput.setFont( next );
                     log.info(""+ next);
-                    repaintAllNodes();
-                }
-            }
-
-        }
-
-
-        void handleMark(KeyEvent e, boolean needCtrl){
-
-            if( !needCtrl || (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
-
-                e.consume();
-
-                JtvTreeNode n = (JtvTreeNode)
-                    tree.getLastSelectedPathComponent();
-
-                if( n == null ){
-                    return;
-                }
-
-                n.toggleMark();
-
-                if( n.isMarked() ){
-                    marks.add( n );
-                    Collections.sort( marks );
-                }else{
-                    marks.remove( n );
-                }
-
-                DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
-                model.nodeChanged( n );
-            }
-
-        }
-
-
-        void handleRemoveMarks(KeyEvent e){
-
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
-                e.consume();
-                DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
-                for(JtvTreeNode n: marks){
-                    n.toggleMark();
-                    model.nodeChanged( n );
-                }
-                marks.clear();
-            }
-        }
-
-
-        void handleGoto(KeyEvent e){
-
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
-
-                e.consume();
-
-                TreePath p;
-                JtvTreeNode n;
-
-                if( marks.size() > 0 ){
-                    currentMark = (++currentMark) % marks.size();
-                    n = marks.get(currentMark);
-                    p = new TreePath(n.getPath());
-                    tree.setSelectionPath( p );
-                    tree.scrollPathToVisible( p );
+                    SwingUtilities.updateComponentTreeUI(topFrame);
+                    cmdInput.restoreCaretPos();
                 }
             }
 
@@ -971,7 +1183,7 @@ public class Jtv extends JPanel {
                         return;
                     }
 
-                    Enumeration en = r.preorderEnumeration();
+                    Enumeration<?> en = r.preorderEnumeration();
                     while(en.hasMoreElements()){
                         child = (JtvTreeNode) en.nextElement();
                         if( child.isLeaf() && !child.isMarked() ){
@@ -998,18 +1210,23 @@ public class Jtv extends JPanel {
         void handleHoverHelp(KeyEvent e){
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 e.consume();
-                //JtvTree.toggleMegaMenu();
                 helpMenu.setVisible( !helpMenu.isVisible() );
             }
         }
 
+
+        void handleCommandLine(KeyEvent e){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+                e.consume();
+                hideToggleCommand();
+            }
+        }
 
 
         public void keyPressed(KeyEvent e) {
 
             switch(e.getKeyCode()){
                 default: break;
-                case KeyEvent.VK_ENTER : handleEnter(e); break;
                 case KeyEvent.VK_Q     :
                 case KeyEvent.VK_W     : handleQuit(e, true); break;
                 case KeyEvent.VK_C     : handleQuit(e, false); break;
@@ -1022,15 +1239,10 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_N     : handleNormalize(e); break;
                 case KeyEvent.VK_0     : handleResetYX(e); break;
                 case KeyEvent.VK_X     : handleTerm(e); break;
-                case KeyEvent.VK_A     : handleNewFile(e); break;
-                case KeyEvent.VK_D     : handleDeleteFile(e); break;
-                case KeyEvent.VK_R     : handleRename(e); break;
-                case KeyEvent.VK_L     : handleRemoveMarks(e); break;
-                case KeyEvent.VK_SPACE : handleMark(e, false); break;
-                case KeyEvent.VK_F     : handleGoto(e); break;
                 case KeyEvent.VK_F5    : handleRefresh(e); break;
                 case KeyEvent.VK_H     : handleHideToggle(e); break;
                 case KeyEvent.VK_K     : handleHoverHelp(e); break;
+                case KeyEvent.VK_Y     : handleCommandLine(e); break;
             }
 
         }
@@ -1046,38 +1258,5 @@ public class Jtv extends JPanel {
         }
 
     };
-
-
-
-    // Listen to a few key events [JDialog]
-    final KeyListener helpListener = new KeyAdapter() {
-
-        void handleHoverHelp(KeyEvent e){
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
-                e.consume();
-                helpMenu.setVisible( false );
-            }
-        }
-
-        public void keyPressed(KeyEvent e) {
-
-            switch(e.getKeyCode()){
-                default: break;
-                case KeyEvent.VK_K  : handleHoverHelp(e); break;
-            }
-
-        }
-
-        // not much here :-)
-        @Override
-        public void keyReleased(KeyEvent e) {
-
-            switch(e.getKeyCode()){
-                default: break;
-            }
-        }
-
-    };
-
 
 }

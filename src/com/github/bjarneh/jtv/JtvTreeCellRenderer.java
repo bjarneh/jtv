@@ -25,6 +25,8 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.InputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JTree;
@@ -53,8 +55,10 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
     static public int fontStyle   = Font.PLAIN;
     static public String fontName = Font.MONOSPACED;
 
-    static Font[] fonts  = null;
     static int fontIndex = 0;
+    static Font[] fonts  = null;
+    static String[] fontNames = null;
+    static int currFontSize = 12;
 
     static boolean alternativeColor = false;
     static Color highlighted = Color.GREEN;
@@ -112,7 +116,7 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
     protected Font nextFont(){
         if( fonts == null ){
             allFonts(); // fonts gets filled
-            fontIndex = fontHack();
+            fontIndex = fontPosition();
         }
         return fonts[++fontIndex % fonts.length];
     }
@@ -121,7 +125,7 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
     protected Font prevFont(){
         if( fonts == null ){
             allFonts(); // fonts gets filled
-            fontIndex = fontHack();
+            fontIndex = fontPosition();
         }
         fontIndex--;
         if( fontIndex < 0 ){
@@ -131,19 +135,14 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
     }
 
 
-    // Look for own Font, NOTE: Font array does not have to be sorted
-    // and cannot be (binary) searched, Fonts do not implement comparable.
-    private int fontHack(){
+    // Look up the position of the current Font
+    private int fontPosition(){
         if( fonts != null ){
-            int currIndex = 0;
             String currFont = getFont().toString();
-            for(int i = 0; i < fonts.length; i++){
-                if(currFont.equals(fonts[i].toString())){
-                    currIndex = i;
-                    break;
-                }
+            int tmp = Arrays.binarySearch(fontNames, currFont);
+            if( tmp > 0 ){// Should always be true
+                return tmp;
             }
-            return currIndex;
         }
         return 0;
     }
@@ -152,16 +151,47 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
     public static Font[] allFonts(){
         if( fonts == null ){
             long t1, t0 = System.currentTimeMillis();
+            registerFonts();
             fonts = GraphicsEnvironment.getLocalGraphicsEnvironment()
                                        .getAllFonts();
+
+            TreeMap<String, Font> sortedFonts = new TreeMap<String, Font>();
             for(int i = 0; i < fonts.length; i++){
                 fonts[i] = new Font(fonts[i].getName(),fontStyle,fontSize);
+                sortedFonts.put( fonts[i].getName(), fonts[i] );
+            }
+            int cnt = 0;
+            fontNames = new String[ fonts.length ];
+            for(String k: sortedFonts.keySet()){
+                fonts[cnt] = sortedFonts.get(k);
+                fontNames[cnt++] = k;
             }
             t1 = System.currentTimeMillis();
-            log.log(Level.INFO,"Loaded "+fonts.length + " fonts in "+
+            log.log(Level.INFO,"Loaded "+ fonts.length + " fonts in "+
                     (t1-t0) + " milliseconds");
         }
         return fonts;
+    }
+
+
+    public static Font getFussyFont(String name, boolean isTab){
+        Font tmp = null;
+        if( fonts == null ){ allFonts(); }
+        int location = Arrays.binarySearch(fontNames, name);
+        if( location > 0 ){
+            if( isTab && fonts[location].getName().equals(name) ){
+                tmp = fonts[ (location+1) % fonts.length ];
+            }else{
+                tmp = fonts[location];
+            }
+        } else if( location < -1 ){
+            int placement = (location + 1) * -1;
+            tmp = fonts[placement];
+        }
+        if( tmp != null ){
+            return new Font( tmp.getName(), tmp.getStyle(), currFontSize );
+        }
+        return null;
     }
 
 
