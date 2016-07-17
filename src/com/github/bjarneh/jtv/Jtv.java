@@ -33,6 +33,8 @@ import java.util.Enumeration;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseAdapter;
@@ -500,20 +502,39 @@ public class Jtv extends JPanel {
 
     private boolean gotoPath(String pattern){
 
-        DefaultTreeModel model   = (DefaultTreeModel) tree.getModel();
-        JtvTreeNode child, r2, n = (JtvTreeNode) model.getRoot();
+        if( pattern == null ){
+            return false;
+        }
 
         boolean foundMatch = false;
+        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        JtvTreeNode child, n   = (JtvTreeNode) model.getRoot();
+
         File file;
-        TreePath p;
+        TreePath p, curr = tree.getSelectionPath();
+        JtvTreeNode currNode = null;
+        boolean waitForCurrNode = false;
+        if( curr != null ){
+            currNode = nodeFromTreePath(curr);
+            if(currNode != null && currNode.matches(pattern)){
+                waitForCurrNode = true;
+            }
+        }
         Enumeration<?> en = n.preorderEnumeration();
         while(en.hasMoreElements()){
             child = (JtvTreeNode) en.nextElement();
-            file  = (File) child.getUserObject();
-            if(file.getName().indexOf(pattern) > -1
-               || file.getName().matches(pattern))
-            {
+            if( waitForCurrNode ){
+                if( currNode.equals(child) ){
+                    waitForCurrNode = false;
+                }else{
+                    continue;
+                }
+            }
+            if( child.matches( pattern ) ) {
                 p = new TreePath(child.getPath());
+                if( p.equals(curr) ){
+                    continue;
+                }
                 tree.setSelectionPath( p );
                 tree.scrollPathToVisible( p );
                 foundMatch = true;
@@ -522,6 +543,50 @@ public class Jtv extends JPanel {
         }
 
         return foundMatch;
+    }
+
+
+    // Remove highligted files / directiories
+    void removeMarks(){
+        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        for(JtvTreeNode n: marks){
+            n.toggleMark();
+            model.nodeChanged( n );
+        }
+        marks.clear();
+    }
+
+
+    // NOTE: this changes/removes earlier highlighted paths
+    private boolean grepFiles(String pattern){
+        try{
+            // Put this first in case of compilation error
+            Pattern regx = Pattern.compile(pattern);
+
+            removeMarks();
+
+            DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+            JtvTreeNode child, n = (JtvTreeNode) model.getRoot();
+
+            File file;
+            TreePath tp;
+            Enumeration<?> en = n.preorderEnumeration();
+            while(en.hasMoreElements()){
+                child = (JtvTreeNode) en.nextElement();
+                if( child.containsPattern( regx ) ){
+                    tp = new TreePath(child.getPath());
+                    //tree.expandPath(tp);
+                    tree.scrollPathToVisible( tp );
+                    marks.add( child );
+                    child.toggleMark();
+                }
+            }
+            SwingUtilities.updateComponentTreeUI(tree);
+            return true;
+        }catch(Exception e){
+            log.log(Level.WARNING, e.getMessage(), e);
+        }
+        return false;
     }
 
 
@@ -648,6 +713,11 @@ public class Jtv extends JPanel {
                 break;
             case JtvTextField.PATH_GREP:
                 if( ! gotoPath( tup.getRight() ) ){
+                    cmdInput.flashField(Color.RED, Color.WHITE, 20, 40);
+                }
+                break;
+            case JtvTextField.FILE_GREP:
+                if( ! grepFiles( tup.getRight() ) ){
                     cmdInput.flashField(Color.RED, Color.WHITE, 20, 40);
                 }
                 break;
@@ -815,12 +885,7 @@ public class Jtv extends JPanel {
 
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 e.consume();
-                DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
-                for(JtvTreeNode n: marks){
-                    n.toggleMark();
-                    model.nodeChanged( n );
-                }
-                marks.clear();
+                removeMarks();
             }
         }
 

@@ -86,7 +86,12 @@ public class JtvTextField extends JTextField {
     public void restoreCaretPos(){
         String tmp = getText();
         if( tmp != null && tmp.length() <= caretPos ){
-            setCaretPosition( caretPos );
+            try{
+                setCaretPosition( caretPos );
+            }catch(IllegalArgumentException e){
+                // ignore error, text may have shortened
+                // while we this call is made..
+            }
         }
     }
 

@@ -15,8 +15,17 @@
 
 package com.github.bjarneh.jtv;
 
+// std
 import java.io.File;
 import javax.swing.tree.DefaultMutableTreeNode;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+// libb
+import com.github.bjarneh.utilz.io;
+
 
 /**
  * Extend DefaultMutableTreeNode in order to override the toString method.
@@ -28,6 +37,9 @@ public class JtvTreeNode extends DefaultMutableTreeNode
     implements Comparable<JtvTreeNode> {
 
     static final long serialVersionUID = 0;
+
+    private static final Logger log =
+            Logger.getLogger(JtvTreeNode.class.getName());
 
     boolean marked = false;
 
@@ -50,6 +62,39 @@ public class JtvTreeNode extends DefaultMutableTreeNode
     public void toggleMark(){
         marked = !marked;
     }
+
+    // lowerCase startsWith || regex match
+    public boolean matches(String pattern){
+        File file  = (File) getUserObject();
+        String lowerPattern = pattern.toLowerCase();
+        try{
+            // Illegal regexp can throw Exceptions
+            if(file.getName().toLowerCase().startsWith(lowerPattern)
+               || file.getName().matches(pattern))
+            {
+                return true;
+            }
+        }catch(Exception e){
+            log.log(Level.WARNING, e.getMessage(), e);
+        }
+        return false;
+    }
+
+
+    public boolean containsPattern(Pattern p){
+        try{
+            File file = (File) getUserObject();
+            if( file.isFile() ){
+                String content = new String(io.raw(file));
+                Matcher m = p.matcher( content );
+                return m.find();
+            }
+        }catch(Exception e){
+            log.log(Level.WARNING, e.getMessage(), e);
+        }
+        return false;
+    }
+
 
     @Override
     public String toString(){
@@ -80,11 +125,17 @@ public class JtvTreeNode extends DefaultMutableTreeNode
         if( userObj instanceof String ){
             File current = (File) getUserObject();
             File parent  = current.getParentFile();
-            File present = new File(parent, userObj.toString());
-            if( current.renameTo( present ) ){
-                userObj = present;
-            }else{
-                throw new RuntimeException("Could not rename file");
+            try{
+                File present = new File(parent, userObj.toString());
+                if( current.renameTo( present ) ){
+                    userObj = present;
+                }else{
+                    throw new Exception("Could not rename:'" +
+                            current + "', to: '"+ present + "'");
+                }
+            // SecurityException + the one above
+            }catch(Exception e){
+                log.log(Level.SEVERE, e.getMessage(), e);
             }
         }
         super.setUserObject(userObj);
