@@ -290,11 +290,16 @@ public class Jtv extends JPanel {
     public static JtvTreeNode buildTree(String ... args){
 
         File tmp;
+        String abs;
         ArrayList<File> dirs = new ArrayList<File>();
 
         for(String a: args){
 
             tmp = new File(a);
+            while( tmp.getAbsolutePath().endsWith(".") ){
+                abs = tmp.getAbsolutePath();
+                tmp = new File( abs.substring(0, abs.length() -1));
+            }
 
             if( tmp.isDirectory() ){
                 dirs.add( tmp );
