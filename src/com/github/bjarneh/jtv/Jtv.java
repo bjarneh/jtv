@@ -575,7 +575,6 @@ public class Jtv extends JPanel {
                 child = (JtvTreeNode) en.nextElement();
                 if( child.containsPattern( regx ) ){
                     tp = new TreePath(child.getPath());
-                    //tree.expandPath(tp);
                     tree.scrollPathToVisible( tp );
                     marks.add( child );
                     child.toggleMark();
