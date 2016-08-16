@@ -41,4 +41,11 @@ public class JtvFileCmp implements Comparator<File> {
         }
         return false;
     }
+
+
+    // Quitet down 1.8 compiler warning
+    @Override
+    public int hashCode(){
+        return 1;
+    }
 }
