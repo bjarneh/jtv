@@ -69,10 +69,12 @@ public class JtvTreeNode extends DefaultMutableTreeNode
         String lowerPattern = pattern.toLowerCase();
         try{
             // Illegal regexp can throw Exceptions
-            if(file.getName().toLowerCase().startsWith(lowerPattern)
-               || file.getName().matches(pattern))
-            {
-                return true;
+            if( file != null && file.getName() != null ){
+                if(file.getName().toLowerCase().startsWith(lowerPattern)
+                   || file.getName().matches(pattern))
+                {
+                    return true;
+                }
             }
         }catch(Exception e){
             log.log(Level.WARNING, e.getMessage(), e);
