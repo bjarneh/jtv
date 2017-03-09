@@ -86,7 +86,7 @@ public class JtvTreeNode extends DefaultMutableTreeNode
     public boolean containsPattern(Pattern p){
         try{
             File file = (File) getUserObject();
-            if( file.isFile() ){
+            if( file != null && file.isFile() ){
                 String content = new String(io.raw(file));
                 Matcher m = p.matcher( content );
                 return m.find();
