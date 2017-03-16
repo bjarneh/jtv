@@ -510,10 +510,12 @@ public class Jtv extends JPanel {
                 Enumeration<?> en = n.preorderEnumeration();
                 while(en.hasMoreElements()){
                     child = (JtvTreeNode) en.nextElement();
-                    String fileName = child.getUserObject().toString();
-                    if( shouldBeMarked.contains(fileName) ){
-                        child.toggleMark();
-                        marks.add( child );
+                    if( child != null && child.getUserObject() != null ){
+                        String fileName = child.getUserObject().toString();
+                        if( shouldBeMarked.contains(fileName) ){
+                            child.toggleMark();
+                            marks.add( child );
+                        }
                     }
                 }
 
