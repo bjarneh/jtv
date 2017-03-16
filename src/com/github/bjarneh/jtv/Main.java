@@ -57,6 +57,7 @@ public class Main {
         "  -s --stil  :  set alternative theme     \n"+
         "  -f --font  :  set alternative font      \n"+
         "  -z --size  :  set alternative font size \n"+
+        "  -x --save  :  ignore saved state        \n"+
         "  -d --drop  :  exclude file/dirs [regex] \n"+
         "  -m --mark  :  mark color: rgb(0,255,0)  \n"+
         "  -n --noxt  :  don't open via xterm      \n"+
@@ -70,6 +71,7 @@ public class Main {
     static boolean list  = false;
     static boolean noxt  = false;
     static boolean font  = false; // mark true if user want's a new font
+    static boolean save  = true;
     static Getopt getopt = initParser();
 
 
@@ -80,6 +82,7 @@ public class Main {
         getopt.addBoolOption("-h -help --help");
         getopt.addBoolOption("-l -list --list");
         getopt.addBoolOption("-n -noxt --noxt");
+        getopt.addBoolOption("-x -save --save");
         getopt.addBoolOption("-b -bruce --bruce"); // hidden :-)
         getopt.addFancyStrOption("-s --stil");
         getopt.addFancyStrOption("-d --drop");
@@ -107,6 +110,10 @@ public class Main {
 
         if( getopt.isSet("-noxt") ){
             JtvCmd.noXterm();
+        }
+
+        if( getopt.isSet("-save") ){
+            save = false;
         }
 
         if( getopt.isSet("-size") ){
@@ -186,6 +193,9 @@ public class Main {
                 public void run() {
                     Jtv jtv = new Jtv();
                     jtv.addTree(root);
+                    if( save ){
+                        jtv.loadState();
+                    }
                     jtv.createAndShowGUI( bruce );
                 }
             });

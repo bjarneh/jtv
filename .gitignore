@@ -1,3 +1,4 @@
 /jtv
 dst/*
 obj/*
+.jtv_state

@@ -20,12 +20,6 @@ import java.net.URL;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Color;
-import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,6 +29,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.nio.charset.Charset;
+//import java.nio.charset.StandardCharsets;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseAdapter;
@@ -78,6 +80,8 @@ import javax.swing.text.DefaultEditorKit;
 
 // libb
 import com.github.bjarneh.utilz.res;
+import com.github.bjarneh.utilz.io;
+import com.github.bjarneh.utilz.handy;
 import com.github.bjarneh.utilz.Tuple;
 
 
@@ -106,6 +110,7 @@ public class Jtv extends JPanel {
     public static JtvFileCmp cmp = new JtvFileCmp();
     public static JtvFileFilter filter = new JtvFileFilter();
 
+    public static final String STATE_FILE = ".jtv_state";
 
     public static final String regularStyle = 
         "com.github.bjarneh.jtv.JtvLookAndFeel";
@@ -151,6 +156,7 @@ public class Jtv extends JPanel {
         "  <tr><th>Ctrl+E</th><td>Cycle font forwards</td></tr>         "+
         "  <tr><th>Ctrl+S</th><td>Cycle font backwards</td></tr>        "+
         "  <tr><th>Ctrl+Y</th><td>Open command line</td></tr>           "+
+        "  <tr><th>Ctrl+V</th><td>Store marked file state</td></tr>     "+
         " </table>                                                      "+
         " </div>                                                        "+
         "<html>                                                         ";
@@ -474,8 +480,6 @@ public class Jtv extends JPanel {
     }
 
 
-
-
     public boolean touch( File file ){
         try{
             if( ! file.exists() ){
@@ -487,6 +491,42 @@ public class Jtv extends JPanel {
             log.log(Level.SEVERE, e.getMessage(), e);
         }
         return false;
+    }
+
+
+    public void loadState(){
+        File f = new File(STATE_FILE);
+        if( f.isFile() ){
+            try{
+                byte[] raw = io.raw(f);
+                String[] fnames =
+                    new String(io.raw(f), getCharset()).split("\n");
+                HashSet<String> shouldBeMarked = new HashSet<String>();
+                Collections.addAll( shouldBeMarked, fnames );
+
+                DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+                JtvTreeNode child, n = (JtvTreeNode) model.getRoot();
+
+                Enumeration<?> en = n.preorderEnumeration();
+                while(en.hasMoreElements()){
+                    child = (JtvTreeNode) en.nextElement();
+                    String fileName = child.getUserObject().toString();
+                    if( shouldBeMarked.contains(fileName) ){
+                        child.toggleMark();
+                        marks.add( child );
+                    }
+                }
+
+            }catch(Exception e){
+                log.log(Level.SEVERE, e.getMessage(), e);
+            }
+        }
+    }
+
+
+    // TODO: use StandardCharsets.UTF_8 when Java 1.7 can be assumed
+    private Charset getCharset(){
+        return Charset.defaultCharset();
     }
 
 
@@ -1292,6 +1332,36 @@ public class Jtv extends JPanel {
         }
 
 
+        void handleSaveState(KeyEvent e){
+            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+                e.consume();
+                if( marks != null && marks.size() > 0 ){
+                    File f;
+                    Object obj;
+                    ArrayList<String> fnames = new ArrayList<String>();
+                    for(JtvTreeNode n: marks){
+                        obj = n.getUserObject();
+                        if( obj instanceof File ){
+                            f = (File) obj;
+                            fnames.add( f.getPath() );
+                        }
+                    }
+                    if( fnames.size() > 0 ){
+                        byte[] content =
+                            handy.join("\n", fnames)
+                                 .getBytes(getCharset());
+                        try{
+                            f = new File(STATE_FILE);
+                            io.pipe(content, new FileOutputStream(f));
+                        }catch(Exception ex){
+                            log.log(Level.SEVERE, ex.getMessage(), ex);
+                        }
+                    }
+                }
+            }
+        }
+
+
         public void keyPressed(KeyEvent e) {
 
             switch(e.getKeyCode()){
@@ -1312,6 +1382,7 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_H     : handleHideToggle(e); break;
                 case KeyEvent.VK_K     : handleHoverHelp(e); break;
                 case KeyEvent.VK_Y     : handleCommandLine(e); break;
+                case KeyEvent.VK_V     : handleSaveState(e); break;
             }
 
         }
