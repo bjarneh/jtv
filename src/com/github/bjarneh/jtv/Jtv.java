@@ -245,7 +245,7 @@ public class Jtv extends JPanel {
     }
 
 
-    public void createAndShowGUI(boolean useBruce) {
+    public void createAndShowGUI(boolean useBruce, boolean isRestored) {
 
         // Create and set up the window.
         JFrame frame = new JFrame("jtv");
@@ -278,7 +278,21 @@ public class Jtv extends JPanel {
 
         topFrame = frame;
 
+        if( isRestored ){
+            expandRestored();
+        }
     }
+
+
+    @SuppressWarnings("unchecked")
+    private void expandRestored(){
+        if( marks != null && marks.size() > 0 ){
+            for(JtvTreeNode n: marks){
+                expandTo( n );
+            }
+        }
+    }
+
 
     private static JtvTreeNode getTree(File file){
         JtvTreeNode node = new JtvTreeNode(file);
@@ -340,6 +354,16 @@ public class Jtv extends JPanel {
     private void nodeChanged( DefaultMutableTreeNode node ){
         DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
         model.reload( node );
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private void expandTo(DefaultMutableTreeNode path){
+        if( path == null ){
+            return;
+        }
+        tree.expandPath(new TreePath(path.getPath()));
+        expandTo( (DefaultMutableTreeNode) path.getParent() );
     }
 
 

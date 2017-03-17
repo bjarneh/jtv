@@ -196,7 +196,7 @@ public class Main {
                     if( save ){
                         jtv.loadState();
                     }
-                    jtv.createAndShowGUI( bruce );
+                    jtv.createAndShowGUI( bruce, save );
                 }
             });
         }
