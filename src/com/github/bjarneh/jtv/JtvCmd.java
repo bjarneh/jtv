@@ -30,14 +30,13 @@ public class JtvCmd {
 
     static final long serialVersionUID = 0;
 
-    // Xterm (or alternative term) + arguments for it
-    private static String[] targs = null;
-    // Executable + arguments for it
-    private static String[] xargs = null;
+    //// Xterm (or alternative term) + arguments for it
+    // private static String[] targs = null;
+    //// Executable + arguments for it
+    // private static String[] xargs = null;
 
     // Defaults
-    static String[] args = {
-
+    private static String[] args = {
         "xterm",
         "-geometry","80x35",
         "-bw","0",
@@ -46,6 +45,25 @@ public class JtvCmd {
         null        // file name
     };
 
+    // Windows arguments [Opens Vim in CMD terminal]
+    private static String[] winArgs = {
+        "CMD",
+        "/C",
+        "START",
+        "CMD",
+        "/C",
+        "vim",
+        null        // file name
+    };
+
+
+    //TODO FIXME add ability to edit modify command line arguments
+    //for both terminal and executable.
+    static {
+        if( System.getProperty("os.name").matches("^[Ww]indows.*$") ){
+            args = winArgs;
+        }
+    }
 
 
     public static void setOpener(String program){
