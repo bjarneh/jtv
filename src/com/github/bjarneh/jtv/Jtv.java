@@ -659,6 +659,41 @@ public class Jtv extends JPanel {
     }
 
 
+
+    private void saveState(){
+        if( marks != null && marks.size() > 0 ){
+
+            File f, outfile = new File(STATE_FILE);
+            if( outfile.exists() && ! outfile.canWrite() ){
+                log.log(Level.SEVERE, "Cannot write to file: " + STATE_FILE);
+                return;
+            }
+
+            Object obj;
+            ArrayList<String> fnames = new ArrayList<String>();
+            for(JtvTreeNode n: marks){
+                obj = n.getUserObject();
+                if( obj instanceof File ){
+                    f = (File) obj;
+                    fnames.add( f.getPath() );
+                }
+            }
+            if( fnames.size() > 0 ){
+                byte[] content =
+                    handy.join("\n", fnames)
+                    .getBytes(getCharset());
+                try{
+                    io.pipe(content, new FileOutputStream(outfile));
+                }catch(Exception ex){
+                    log.log(Level.SEVERE, ex.getMessage(), ex);
+                }
+            }
+        }
+    }
+
+
+
+
     // Listen to cell edit event
     private final CellEditorListener cellListener = new CellEditorListener() {
 
@@ -1150,6 +1185,7 @@ public class Jtv extends JPanel {
                     }
                 }
 
+                saveState(); // always save state [why not]
                 System.exit(0);
             }
         }
@@ -1360,29 +1396,7 @@ public class Jtv extends JPanel {
         void handleSaveState(KeyEvent e){
             if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
                 e.consume();
-                if( marks != null && marks.size() > 0 ){
-                    File f;
-                    Object obj;
-                    ArrayList<String> fnames = new ArrayList<String>();
-                    for(JtvTreeNode n: marks){
-                        obj = n.getUserObject();
-                        if( obj instanceof File ){
-                            f = (File) obj;
-                            fnames.add( f.getPath() );
-                        }
-                    }
-                    if( fnames.size() > 0 ){
-                        byte[] content =
-                            handy.join("\n", fnames)
-                                 .getBytes(getCharset());
-                        try{
-                            f = new File(STATE_FILE);
-                            io.pipe(content, new FileOutputStream(f));
-                        }catch(Exception ex){
-                            log.log(Level.SEVERE, ex.getMessage(), ex);
-                        }
-                    }
-                }
+                saveState();
             }
         }
 
