@@ -284,7 +284,6 @@ public class Jtv extends JPanel {
     }
 
 
-    @SuppressWarnings("unchecked")
     private void expandRestored(){
         if( marks != null && marks.size() > 0 ){
             for(JtvTreeNode n: marks){
