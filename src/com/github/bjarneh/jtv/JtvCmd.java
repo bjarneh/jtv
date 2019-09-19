@@ -18,6 +18,7 @@ package com.github.bjarneh.jtv;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 /**
@@ -34,6 +35,8 @@ public class JtvCmd {
     // private static String[] targs = null;
     //// Executable + arguments for it
     // private static String[] xargs = null;
+
+    static boolean isWindows = false;
 
     // Defaults
     private static String[] args = {
@@ -62,6 +65,7 @@ public class JtvCmd {
     static {
         if( System.getProperty("os.name").matches("^[Ww]indows.*$") ){
             args = winArgs;
+            isWindows = true;
         }
     }
 
@@ -79,13 +83,28 @@ public class JtvCmd {
 
 
     public static synchronized Process open(File file) throws IOException {
-        args[args.length - 1] = file.toString(); // relative path
+        if( isWindows ){
+            args[args.length - 1] = pathForwardSlashed(file); // relative path with dirsep='/'
+        }else{
+            args[args.length - 1] = file.toString(); // relative path
+        }
         return new ProcessBuilder(args).start();
     }
 
 
     public static Process run(String[] cmd) throws IOException {
         return new ProcessBuilder(cmd).start();
+    }
+
+
+    public static String pathForwardSlashed(File f){
+        ArrayList<String> pathNames = new ArrayList<String>();
+        while(f != null ){
+            pathNames.add( f.getName() );
+            f = f.getParentFile();
+        }
+        Collections.reverse( pathNames );
+        return String.join("/", pathNames);
     }
 
 }
