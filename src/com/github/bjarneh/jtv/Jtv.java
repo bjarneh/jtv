@@ -157,6 +157,12 @@ public class Jtv extends JPanel {
         "  <tr><th>Ctrl+S</th><td>Cycle font backwards</td></tr>        "+
         "  <tr><th>Ctrl+Y</th><td>Open command line</td></tr>           "+
         "  <tr><th>Ctrl+V</th><td>Store marked file state</td></tr>     "+
+        "  <tr><th>Ctrl+A</th><td>Add new file (on folder)</td></tr>    "+
+        "  <tr><th>Ctrl+D</th><td>Delete file</td></tr>                 "+
+        "  <tr><th>Ctrl+R</th><td>Rename file</td></tr>                 "+
+        "  <tr><th>Ctrl+L</th><td>Remove marks</td></tr>                "+
+        "  <tr><th>Ctrl+F</th><td>Goto next marked file</td></tr>       "+
+        "  <tr><th>Ctrl+Space</th><td>Toggle mark</td></tr>             "+
         " </table>                                                      "+
         " </div>                                                        "+
         "<html>                                                         ";
