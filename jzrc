@@ -2,6 +2,6 @@
 
 -zlib
 -output jtv
--target 1.5
--source 1.5
+#-target 1.5
+#-source 1.5
 -Xlint

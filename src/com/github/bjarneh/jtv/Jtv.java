@@ -768,7 +768,7 @@ public class Jtv extends JPanel {
     final KeyListener helpListener = new KeyAdapter() {
 
         void handleHoverHelp(KeyEvent e){
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 e.consume();
                 helpMenu.setVisible( false );
             }
@@ -905,7 +905,7 @@ public class Jtv extends JPanel {
 
 
         void handleNewFile(KeyEvent e){
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0  ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0  ){
                 e.consume();
                 if( current != null ){
                     File parent = (File) current.getUserObject();
@@ -932,7 +932,7 @@ public class Jtv extends JPanel {
 
         void handleDeleteFile(KeyEvent e){
 
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 if( current != null ){
                     File file = (File) current.getUserObject();
                     if( file.isFile() ){
@@ -951,7 +951,7 @@ public class Jtv extends JPanel {
 
         void handleRename(KeyEvent e){
 
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 if( current != null ){
                     e.consume();
                     tree.setEditable(true);
@@ -964,7 +964,7 @@ public class Jtv extends JPanel {
 
         void handleMark(KeyEvent e, boolean needCtrl){
 
-            if( !needCtrl || (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( !needCtrl || (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
 
                 e.consume();
 
@@ -993,7 +993,7 @@ public class Jtv extends JPanel {
 
         void handleRemoveMarks(KeyEvent e){
 
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 e.consume();
                 removeMarks();
             }
@@ -1002,7 +1002,7 @@ public class Jtv extends JPanel {
 
         void handleGoto(KeyEvent e){
 
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
 
                 e.consume();
 
@@ -1055,7 +1055,7 @@ public class Jtv extends JPanel {
 
         void handleMaximize(KeyEvent e, boolean needsCtrl){
             if( !needsCtrl || 
-                (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 )
+                (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 )
             {
                 e.consume();
                 toggleMaximize();
@@ -1064,10 +1064,10 @@ public class Jtv extends JPanel {
 
 
         void handleNormalize(KeyEvent e){
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 e.consume();
                 resetSize();
-            }else if( (e.getModifiers() & KeyEvent.ALT_MASK) != 0 ){
+            }else if( (e.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) != 0 ){
 
                 TreeCellRenderer cellRenderer = tree.getCellRenderer();
 
@@ -1091,7 +1091,7 @@ public class Jtv extends JPanel {
 
 
         void handleResetYX(KeyEvent e){
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 e.consume();
                 resetPosition();
             }
@@ -1100,12 +1100,12 @@ public class Jtv extends JPanel {
 
         void handleBigger(KeyEvent e){
 
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 e.consume();
                 getBigger();
             }
 
-            if( (e.getModifiers() & KeyEvent.ALT_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) != 0 ){
 
                 TreeCellRenderer cellRenderer = tree.getCellRenderer();
 
@@ -1132,12 +1132,12 @@ public class Jtv extends JPanel {
 
         void handleSmaller(KeyEvent e){
 
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 e.consume();
                 getSmaller();
             }
 
-            if( (e.getModifiers() & KeyEvent.ALT_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.ALT_DOWN_MASK) != 0 ){
 
                 TreeCellRenderer cellRenderer = tree.getCellRenderer();
 
@@ -1167,7 +1167,7 @@ public class Jtv extends JPanel {
 
         void handleTerm(KeyEvent e){
 
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 try{
                     JtvCmd.run(new String[]{"xterm"});
                 }catch(Exception ex){
@@ -1180,7 +1180,7 @@ public class Jtv extends JPanel {
 
         void handleQuit(KeyEvent e, boolean sure){
 
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
 
                 if( !sure ){
                     int reply = JOptionPane.showConfirmDialog(topFrame,
@@ -1308,7 +1308,7 @@ public class Jtv extends JPanel {
 
         void handleFontCycle(KeyEvent e, boolean forward){
 
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
 
                 TreeCellRenderer cellRenderer = tree.getCellRenderer();
 
@@ -1342,7 +1342,7 @@ public class Jtv extends JPanel {
 
         void handleHideToggle(KeyEvent e){
 
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
 
                 DefaultTreeModel model  = (DefaultTreeModel) tree.getModel();
                 JtvTreeNode child, p, r = (JtvTreeNode) model.getRoot();
@@ -1384,7 +1384,7 @@ public class Jtv extends JPanel {
 
 
         void handleHoverHelp(KeyEvent e){
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 e.consume();
                 helpMenu.setVisible( !helpMenu.isVisible() );
             }
@@ -1392,7 +1392,7 @@ public class Jtv extends JPanel {
 
 
         void handleCommandLine(KeyEvent e){
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 e.consume();
                 hideToggleCommand();
             }
@@ -1400,7 +1400,7 @@ public class Jtv extends JPanel {
 
 
         void handleSaveState(KeyEvent e){
-            if( (e.getModifiers() & KeyEvent.CTRL_MASK) != 0 ){
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
                 e.consume();
                 saveState();
             }
