@@ -251,7 +251,7 @@ public class Jtv extends JPanel {
     }
 
 
-    public void createAndShowGUI(boolean useBruce, boolean isRestored) {
+    public void createAndShowGUI(boolean useBruce, boolean isRestored, int launchX, int launchY) {
 
         // Create and set up the window.
         JFrame frame = new JFrame("jtv");
@@ -278,7 +278,11 @@ public class Jtv extends JPanel {
         pane.add(cmdInput, BorderLayout.SOUTH);
 
         // Let the window manager decide placement
-        frame.setLocationByPlatform(true);
+        if(launchX < 1 && launchY < 1 ){
+            frame.setLocationByPlatform(true);
+        }else{
+            frame.setLocation(launchX, launchY);
+        }
         frame.pack();
         frame.setVisible(true);
 

@@ -61,6 +61,7 @@ public class Main {
         "  -d --drop  :  exclude file/dirs [regex] \n"+
         "  -m --mark  :  mark color: rgb(0,255,0)  \n"+
         "  -n --noxt  :  don't open via xterm      \n"+
+        "  -p --posx  :  launch at position: x,y   \n"+
         "  -o --open  :  open with [default: vim]  \n";
 
 
@@ -72,6 +73,8 @@ public class Main {
     static boolean noxt  = false;
     static boolean font  = false; // mark true if user want's a new font
     static boolean save  = true;
+    static int launchX   = -1;
+    static int launchY   = -1;
     static Getopt getopt = initParser();
 
 
@@ -90,6 +93,7 @@ public class Main {
         getopt.addFancyStrOption("-z --size");
         getopt.addFancyStrOption("-o --open");
         getopt.addFancyStrOption("-m --mark");
+        getopt.addFancyStrOption("-p --posx");
 
         return getopt;
 
@@ -145,6 +149,18 @@ public class Main {
             theme = updateTheme( getopt.get("-stil") );
         }
 
+        if( getopt.isSet("-posx") ){
+            String xy = getopt.get("-posx");
+            if(!xy.matches("^\\d+,\\d+$")){
+                System.err.printf("--posx wrong format: %s\n", xy);
+                System.exit(1);
+            }else{
+                String[] pos = xy.split(",");
+                launchX = Integer.parseInt(pos[0]);
+                launchY = Integer.parseInt(pos[1]);
+            }
+        }
+
         getopt.reset();
 
         return rest;
@@ -196,7 +212,7 @@ public class Main {
                     if( save ){
                         jtv.loadState();
                     }
-                    jtv.createAndShowGUI( bruce, save );
+                    jtv.createAndShowGUI( bruce, save, launchX, launchY );
                 }
             });
         }
