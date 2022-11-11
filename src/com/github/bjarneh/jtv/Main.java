@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.awt.Font;
 import javax.swing.UIManager;
 import javax.swing.SwingUtilities;
@@ -61,9 +63,11 @@ public class Main {
         "  -d --drop  :  exclude file/dirs [regex] \n"+
         "  -m --mark  :  mark color: rgb(0,255,0)  \n"+
         "  -n --noxt  :  don't open via xterm      \n"+
-        "  -p --posx  :  launch at position: x,y   \n"+
+        "  -g --geom  :  geometry wxh+x+y          \n"+
         "  -o --open  :  open with [default: vim]  \n";
 
+    static Pattern whxyPattern =
+        Pattern.compile("^(\\d+)x(\\d+)\\+(\\d+)\\+(\\d+)$");
 
     static String[] dirs = {"src"};
     static String theme  = Jtv.regularStyle;
@@ -93,7 +97,7 @@ public class Main {
         getopt.addFancyStrOption("-z --size");
         getopt.addFancyStrOption("-o --open");
         getopt.addFancyStrOption("-m --mark");
-        getopt.addFancyStrOption("-p --posx");
+        getopt.addFancyStrOption("-g --geom");
 
         return getopt;
 
@@ -149,15 +153,17 @@ public class Main {
             theme = updateTheme( getopt.get("-stil") );
         }
 
-        if( getopt.isSet("-posx") ){
-            String xy = getopt.get("-posx");
-            if(!xy.matches("^\\d+,\\d+$")){
-                System.err.printf("--posx wrong format: %s\n", xy);
+        if( getopt.isSet("-geom") ){
+            String whxy = getopt.get("-geom");
+            Matcher m = whxyPattern.matcher(whxy);
+            if(! m.matches() ){
+                System.err.printf("--geom wrong format: %s\n", whxy);
                 System.exit(1);
             }else{
-                String[] pos = xy.split(",");
-                launchX = Integer.parseInt(pos[0]);
-                launchY = Integer.parseInt(pos[1]);
+                Jtv.initWidth = Integer.parseInt(m.group(1));
+                Jtv.initHeight = Integer.parseInt(m.group(2));
+                launchX = Integer.parseInt(m.group(3));
+                launchY = Integer.parseInt(m.group(4));
             }
         }
 
