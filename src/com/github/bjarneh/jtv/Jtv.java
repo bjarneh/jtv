@@ -67,6 +67,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeSelectionModel;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.DefaultTreeCellEditor;
 /// import javax.swing.tree.ExpandVetoException;
 import javax.swing.event.TreeSelectionEvent;
@@ -1363,10 +1364,33 @@ public class Jtv extends JPanel {
                         return;
                     }
 
+                    HashSet<JtvTreeNode> keepers = new HashSet<JtvTreeNode>();
                     Enumeration<?> en = r.preorderEnumeration();
                     while(en.hasMoreElements()){
                         child = (JtvTreeNode) en.nextElement();
-                        if( child.isLeaf() && !child.isMarked() ){
+                        if(child.isMarked()){
+                            keepers.add(child);
+                            for(TreeNode tn: child.getPath()){
+                                var tnx = (JtvTreeNode) tn;
+                                keepers.add(tnx);
+                            }
+                        }
+
+                    ////child = (JtvTreeNode) en.nextElement();
+                    ////if( child.isLeaf() &&
+                    ////    !child.isMarked() )
+                    ////{
+                    ////    removed.add( child );
+                    ////}
+                    //////System.out.printf(" n: %s\n", child.getUserObject());
+
+                    }
+
+                    en = r.preorderEnumeration();
+                    while(en.hasMoreElements()){
+                        child = (JtvTreeNode) en.nextElement();
+                        if(! keepers.contains(child) /* && !child.isRoot() */ ){
+                            System.out.printf(" rm: %s\n", child.getUserObject());
                             removed.add( child );
                         }
                     }

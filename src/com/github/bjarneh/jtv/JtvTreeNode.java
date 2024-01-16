@@ -113,6 +113,7 @@ public class JtvTreeNode extends DefaultMutableTreeNode
         return super.toString();
     }
 
+
     @Override
     public int compareTo(JtvTreeNode other){
 
@@ -121,6 +122,7 @@ public class JtvTreeNode extends DefaultMutableTreeNode
 
         return myFile.compareTo(otherFile);
     }
+
 
     @Override
     public void setUserObject(Object userObj){
@@ -141,6 +143,31 @@ public class JtvTreeNode extends DefaultMutableTreeNode
             }
         }
         super.setUserObject(userObj);
+    }
+
+
+    @Override
+    public int hashCode(){
+        if(this.getUserObject() != null){
+            this.getUserObject().hashCode();
+        }
+        return 0;
+    }
+
+
+    @Override
+    public boolean equals(Object other){
+        if(other == null){ return false; }
+        if(other == this){ return true; }
+        if(other instanceof JtvTreeNode){
+            JtvTreeNode jtvNode = (JtvTreeNode) other;
+            if(this.getUserObject() != null){
+                if(jtvNode.getUserObject() != null){
+                    return jtvNode.getUserObject().equals(this.getUserObject());
+                }
+            }
+        }
+        return false;
     }
 
 }
