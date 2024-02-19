@@ -119,6 +119,8 @@ public class JtvTreeNode extends DefaultMutableTreeNode
 
         File otherFile = (File) other.getUserObject();
         File myFile    = (File) this.getUserObject();
+        if(otherFile == null){ return 1; }
+        if(myFile == null){ return -1; }
 
         return myFile.compareTo(otherFile);
     }

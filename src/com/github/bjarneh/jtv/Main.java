@@ -282,8 +282,6 @@ public class Main {
         File home = new File( System.getProperty("user.home") );
 
         ArrayList<File> conf = new ArrayList<File>();
-        // $PWD/.jtvrc
-        conf.add( new File( pwd, ".jtvrc" ) );
         // $HOME/.jtvrc
         conf.add( new File( home, ".jtvrc" ) );
         // XDG_CONFIG_HOME/jtv/jtvrc || $HOME/.config/jtv/jtvrc
@@ -294,8 +292,11 @@ public class Main {
             stub = new File(home, ".config");
         }
         conf.add( new File(new File(stub,"jtv"), "jtvrc") );
+        // $PWD/.jtvrc
+        conf.add( new File( pwd, ".jtvrc" ) );
         for(File c: conf){
             if( c.isFile() ){
+                System.out.printf(" reading: %s\n", c);
                 args = configToArgs(c);
                 if( args != null && args.length > 0 ){
                     parseArgs( args );

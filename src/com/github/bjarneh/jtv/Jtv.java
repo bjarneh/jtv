@@ -1390,7 +1390,6 @@ public class Jtv extends JPanel {
                     while(en.hasMoreElements()){
                         child = (JtvTreeNode) en.nextElement();
                         if(! keepers.contains(child) /* && !child.isRoot() */ ){
-                            System.out.printf(" rm: %s\n", child.getUserObject());
                             removed.add( child );
                         }
                     }

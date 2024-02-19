@@ -41,6 +41,7 @@ public class JtvFileFilter implements FileFilter {
     @Override
     public boolean accept(File file){
         Matcher m = pattern.matcher( file.getName() );
+        //System.out.printf(" p: '%s', m: %s, f: %s\n", pattern, m.matches(), file.getName());
         return !m.matches();
     }
 
