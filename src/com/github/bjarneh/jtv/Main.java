@@ -296,7 +296,7 @@ public class Main {
         conf.add( new File( pwd, ".jtvrc" ) );
         for(File c: conf){
             if( c.isFile() ){
-                System.out.printf(" reading: %s\n", c);
+                //System.out.printf(" reading: %s\n", c);
                 args = configToArgs(c);
                 if( args != null && args.length > 0 ){
                     parseArgs( args );
