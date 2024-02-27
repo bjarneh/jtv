@@ -118,6 +118,8 @@ public class Jtv extends JPanel {
 
     private int currentMark = 0;
     private ArrayList<JtvTreeNode> marks = new ArrayList<JtvTreeNode>();
+    // Used to store state when marks are modified by 'grep'
+    private ArrayList<JtvTreeNode> markState = null;
     private boolean isHidden = false;
 
     private JDialog helpMenu;
@@ -638,7 +640,27 @@ public class Jtv extends JPanel {
     }
 
 
-    // NOTE: this changes/removes earlier highlighted paths
+
+    // Restore old marks from saved state
+    void restoreMarkState(){
+        DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+        for(JtvTreeNode n: marks){
+            n.toggleMark();
+            model.nodeChanged( n );
+        }
+        marks.clear();
+        marks.addAll( markState );
+        for(JtvTreeNode n: marks){
+            n.toggleMark();
+            model.nodeChanged( n );
+        }
+        // Poinless I guess when setting it to null, but whatever..
+        markState.clear();
+        markState = null;
+    }
+
+
+
     private boolean grepFiles(String pattern){
         try{
             // Put this first in case of compilation error
@@ -727,10 +749,14 @@ public class Jtv extends JPanel {
             cmdInput.storeCaretPos();
             cmdInput.setVisible(false);
             pane.remove(cmdInput);
+            if(markState != null){
+                restoreMarkState();
+            }
         }else{
             cmdInput.setVisible(true);
             pane.add(cmdInput, BorderLayout.SOUTH);
             cmdInput.requestFocus();
+            markState = new ArrayList<JtvTreeNode>(marks);
         }
         SwingUtilities.updateComponentTreeUI(topFrame);
         cmdInput.restoreCaretPos();
