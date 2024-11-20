@@ -125,6 +125,9 @@ public class Jtv extends JPanel {
     private JDialog helpMenu;
     private JtvTextField cmdInput;
     private DefaultMutableTreeNode current;
+    // Used to store removed trees with no real parent, i.e.
+    // only used when we have multiple dirs; which creates fake-root
+    private ArrayList<JtvTreeNode> detachedRoots = new ArrayList<>();
 
     private static final Logger log = Logger.getLogger(Jtv.class.getName());
 
@@ -163,7 +166,6 @@ public class Jtv extends JPanel {
         "  <tr><th>Ctrl+A</th><td>Add new file (on folder)</td></tr>    "+
         "  <tr><th>Ctrl+D</th><td>Delete file</td></tr>                 "+
         "  <tr><th>Ctrl+R</th><td>Rename file</td></tr>                 "+
-        "  <tr><th>Ctrl+L</th><td>Remove marks</td></tr>                "+
         "  <tr><th>Ctrl+F</th><td>Goto next marked file</td></tr>       "+
         "  <tr><th>Ctrl+Space</th><td>Toggle mark</td></tr>             "+
         " </table>                                                      "+
@@ -198,7 +200,9 @@ public class Jtv extends JPanel {
         if( lookAndFeel != null &&
             lookAndFeel.getClass().getName().equals( regularStyle ) )
         {
-            cellRenderer = new JtvTreeCellRenderer();
+            var tmpCellRenderer = new JtvTreeCellRenderer();
+            tmpCellRenderer.avoidCompilorError();
+            cellRenderer = tmpCellRenderer;
         }else{
             cellRenderer = new DefaultTreeCellRenderer();
         }
@@ -693,6 +697,38 @@ public class Jtv extends JPanel {
 
 
 
+    private boolean grepPaths(String pattern){
+        try{
+            // Put this first in case of compilation error
+            Pattern regx = Pattern.compile(pattern);
+
+            removeMarks();
+
+            DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+            JtvTreeNode child, n = (JtvTreeNode) model.getRoot();
+
+            File file;
+            TreePath tp;
+            Enumeration<?> en = n.preorderEnumeration();
+            while(en.hasMoreElements()){
+                child = (JtvTreeNode) en.nextElement();
+                if( child.pathContains( regx ) ){
+                    tp = new TreePath(child.getPath());
+                    tree.scrollPathToVisible( tp );
+                    marks.add( child );
+                    child.toggleMark();
+                }
+            }
+            SwingUtilities.updateComponentTreeUI(tree);
+            return true;
+        }catch(Exception e){
+            log.log(Level.WARNING, e.getMessage(), e);
+        }
+        return false;
+    }
+
+
+
     private void saveState(){
         if( marks != null && marks.size() > 0 ){
 
@@ -728,7 +764,7 @@ public class Jtv extends JPanel {
 
 
     // Listen to cell edit event
-    private final CellEditorListener cellListener = new CellEditorListener() {
+    private final transient CellEditorListener cellListener = new CellEditorListener() {
 
         public void editingCanceled(ChangeEvent e){
             tree.setEditable(false);
@@ -765,7 +801,7 @@ public class Jtv extends JPanel {
 
 
     // Listen to mouse events
-    private final MouseListener mouseListener = new MouseAdapter() {
+    private final transient MouseListener mouseListener = new MouseAdapter() {
 
         public void mousePressed(MouseEvent e) {
 
@@ -785,7 +821,7 @@ public class Jtv extends JPanel {
 
 
     // Listen to events to track selected tree view element
-    final TreeSelectionListener markListener = new TreeSelectionListener() {
+    final transient TreeSelectionListener markListener = new TreeSelectionListener() {
 
         public void valueChanged(TreeSelectionEvent e) {
 
@@ -796,7 +832,7 @@ public class Jtv extends JPanel {
 
 
     // Listen to a few key events [JDialog]
-    final KeyListener helpListener = new KeyAdapter() {
+    final transient KeyListener helpListener = new KeyAdapter() {
 
         void handleHoverHelp(KeyEvent e){
             if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
@@ -827,8 +863,7 @@ public class Jtv extends JPanel {
 
 
     // Listen to a few key events [JTextField]
-    final KeyListener cmdListener = new KeyAdapter() {
-
+    final transient KeyListener cmdListener = new KeyAdapter() {
 
         void handleExecute(KeyEvent e){
 
@@ -862,6 +897,11 @@ public class Jtv extends JPanel {
                     cmdInput.flashField(Color.RED, Color.WHITE, 20, 40);
                 }
                 break;
+            case JtvTextField.PATH_MATCH:
+                if( ! grepPaths( tup.getRight() ) ){
+                    cmdInput.flashField(Color.RED, Color.WHITE, 20, 40);
+                }
+                break;
             default:
                 cmdInput.flashField(Color.RED, Color.WHITE, 20, 40);
                 break;
@@ -891,22 +931,42 @@ public class Jtv extends JPanel {
         }
 
 
-        public void keyPressed(KeyEvent e) {
+        void handleInteractive(KeyEvent e){
+            //cmdInput.flashField(Color.BLACK, Color.WHITE, 20, 40);
+            Tuple<Integer,String> tup = cmdInput.getInteractive();
+            if( tup.getLeft() == JtvTextField.INTERACTIVE ){
 
+                e.consume();
+
+                if( ! grepPaths( tup.getRight() ) ){
+                    cmdInput.flashField(Color.RED, Color.WHITE, 20, 40);
+                }
+
+                if(marks.size() > 0 && !isHidden){
+                    hideHiddenFiles();
+                }else if(marks.size() == 0){
+                    refreshFileTree();
+                }
+            }
+        }
+
+
+        public void keyPressed(KeyEvent e) {
             switch(e.getKeyCode()){
-                default: break;
                 case KeyEvent.VK_TAB    : handleComplete(e); break;
                 case KeyEvent.VK_ENTER  : handleExecute(e); break;
+                //default: handleInteractive(e);
             }
-
         }
+
 
         // not much here :-)
         @Override
         public void keyReleased(KeyEvent e) {
 
             switch(e.getKeyCode()){
-                default: break;
+                default: handleInteractive(e);
+                //default: break;
             }
         }
 
@@ -915,7 +975,7 @@ public class Jtv extends JPanel {
 
 
     // Listen to a few key events [JTree]
-    final KeyListener keyListener = new KeyAdapter() {
+    final transient KeyListener keyListener = new KeyAdapter() {
 
         void handleEnter(KeyEvent e){
 
@@ -1052,6 +1112,40 @@ public class Jtv extends JPanel {
         }
 
 
+        void handleRemoveAndRedraw(KeyEvent e){
+
+            if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
+
+                e.consume();
+
+                DefaultTreeModel model   = (DefaultTreeModel) tree.getModel();
+                JtvTreeNode child, n = (JtvTreeNode) model.getRoot();
+
+                Enumeration<?> en = n.preorderEnumeration();
+                while(en.hasMoreElements()){
+                    child = (JtvTreeNode) en.nextElement();
+                    if(child.isMarked()){
+                        child.toggleMark();
+                    }
+                    model.nodeChanged( child );
+                }
+                marks.clear();
+
+                if( n.getUserObject() == null ){
+                    System.out.printf(" multiple roots\n");
+                    en = n.children();
+                    while(en.hasMoreElements()){
+                        child = (JtvTreeNode) en.nextElement();
+                        var file  = (File) child.getUserObject();
+                        if( file.isDirectory() ){
+                            System.out.printf(" x-root: %s\n", file);
+                        }
+                    }
+                }
+            }
+        }
+
+
         public void keyPressed(KeyEvent e) {
 
             switch(e.getKeyCode()){
@@ -1063,6 +1157,7 @@ public class Jtv extends JPanel {
                 case KeyEvent.VK_L     : handleRemoveMarks(e); break;
                 case KeyEvent.VK_SPACE : handleMark(e, false); break;
                 case KeyEvent.VK_F     : handleGoto(e); break;
+                case KeyEvent.VK_J     : handleRemoveAndRedraw(e); break;
             }
 
         }
@@ -1081,7 +1176,7 @@ public class Jtv extends JPanel {
 
 
     // Listen to key events for multiple components
-    final KeyListener comboListener = new KeyAdapter() {
+    final transient KeyListener comboListener = new KeyAdapter() {
 
 
         void handleMaximize(KeyEvent e, boolean needsCtrl){
@@ -1232,108 +1327,119 @@ public class Jtv extends JPanel {
 
             e.consume();
 
-            DefaultTreeModel model   = (DefaultTreeModel) tree.getModel();
-            JtvTreeNode child, r2, n = (JtvTreeNode) model.getRoot();
+            refreshFileTree();
+
+       //// DefaultTreeModel model   = (DefaultTreeModel) tree.getModel();
+       //// JtvTreeNode child, r2, n = (JtvTreeNode) model.getRoot();
 
 
-            File file;
-            TreePath treePath, selection, scrollTo = null;
-            ArrayList<File> files = new ArrayList<File>();
+       //// File file;
+       //// TreePath treePath, selection, scrollTo = null;
+       //// ArrayList<File> files = new ArrayList<File>();
 
-            // HACK: The missing equals-method in TreePath makes
-            // this pretty strange, although the horrid Java tree-view
-            // classes and interfaces will always leave this messy,
-            // this is particularly funky where we have to compare
-            // with toString on the objects to see if they are equal.
-            //
-            // Store current location of cursor
-            selection = tree.getSelectionPath();
+       //// // HACK: The missing equals-method in TreePath makes
+       //// // this pretty strange, although the horrid Java tree-view
+       //// // classes and interfaces will always leave this messy,
+       //// // this is particularly funky where we have to compare
+       //// // with toString on the objects to see if they are equal.
+       //// //
+       //// // Store current location of cursor
+       //// selection = tree.getSelectionPath();
 
-            // Store list of expanded directories to re-expand
-            HashSet<File> expanded = new HashSet<File>();
-            // Store list of marked nodes to refill
-            HashSet<File> wasMarked = new HashSet<File>();
+       //// // Store list of expanded directories to re-expand
+       //// HashSet<File> expanded = new HashSet<File>();
+       //// // Store list of marked nodes to refill
+       //// HashSet<File> wasMarked = new HashSet<File>();
 
-            // Don't forget marked files
-            if( marks.size() > 0 ){
-                for(JtvTreeNode jtvNode: marks){
-                    wasMarked.add( (File) jtvNode.getUserObject() );
-                }
-            }
+       //// // Don't forget marked files
+       //// if( marks.size() > 0 ){
+       ////     for(JtvTreeNode jtvNode: marks){
+       ////         wasMarked.add( (File) jtvNode.getUserObject() );
+       ////     }
+       //// }
 
-            // Remember all expanded paths
-            Enumeration<?> en = n.preorderEnumeration();
-            while(en.hasMoreElements()){
-                child = (JtvTreeNode) en.nextElement();
-                treePath = new TreePath(child.getPath());
-                if( !child.isLeaf() && 
-                    tree.isExpanded( treePath ) )
-                {
-                    expanded.add( (File) child.getUserObject() );
-                }
-            }
+       //// // Remember all expanded paths
+       //// Enumeration<?> en = n.preorderEnumeration();
+       //// while(en.hasMoreElements()){
+       ////     child = (JtvTreeNode) en.nextElement();
+       ////     treePath = new TreePath(child.getPath());
+       ////     if( !child.isLeaf() && 
+       ////         tree.isExpanded( treePath ) )
+       ////     {
+       ////         expanded.add( (File) child.getUserObject() );
+       ////     }
+       //// }
 
 
-            // multiple roots
-            if( n.getUserObject() == null ){
+       //// // multiple roots
+       //// if( n.getUserObject() == null ){
 
-                en = n.children();
-                while(en.hasMoreElements()){
-                    child = (JtvTreeNode) en.nextElement();
-                    file  = (File) child.getUserObject();
-                    if( file.isDirectory() ){
-                        files.add( file );
-                    }
+       ////     en = n.children();
+       ////     while(en.hasMoreElements()){
+       ////         child = (JtvTreeNode) en.nextElement();
+       ////         file  = (File) child.getUserObject();
+       ////         if( file.isDirectory() ){
+       ////             files.add( file );
+       ////         }
+       ////     }
 
-                }
-                
-                String[] roots = new String[ files.size() ];
-                int i = 0;
-                for(File f: files){
-                    /// roots[i++] = f.getAbsolutePath();
-                    roots[i++] = f.getPath();
-                }
+       ////     if(detachedRoots.size() > 0){
+       ////         for(JtvTreeNode fr: detachedRoots){
+       ////             file  = (File) fr.getUserObject();
+       ////             if( file.isDirectory() ){
+       ////                 files.add( file );
+       ////             }
+       ////         }
+       ////         detachedRoots.clear();
+       ////     }
+       ////     
+       ////     String[] roots = new String[ files.size() ];
+       ////     int i = 0;
+       ////     for(File f: files){
+       ////         /// roots[i++] = f.getAbsolutePath();
+       ////         roots[i++] = f.getPath();
+       ////     }
 
-                r2 = buildTree( roots );
+       ////     r2 = buildTree( roots );
 
-            } else {
+       //// } else {
 
-                File orig = (File) n.getUserObject();
-                /// r2 = buildTree( orig.getAbsolutePath() );
-                r2 = buildTree( orig.getPath() );
-            }
+       ////     File orig = (File) n.getUserObject();
+       ////     /// r2 = buildTree( orig.getAbsolutePath() );
+       ////     r2 = buildTree( orig.getPath() );
+       //// }
 
-            model.setRoot( r2 );
-            marks.clear();
+       //// model.setRoot( r2 );
+       //// marks.clear();
 
-            // Update expanded paths
-            en = r2.preorderEnumeration();
-            while(en.hasMoreElements()){
-                child = (JtvTreeNode) en.nextElement();
-                file  = (File) child.getUserObject();
-                if( wasMarked.contains( file )){
-                    marks.add( child );
-                    child.toggleMark();
-                }
-                if( expanded.contains( file )){
-                    treePath = new TreePath(child.getPath());
-                    tree.expandPath(treePath);
-                }
-                if( selection != null ){
-                    // HACK: no equals method for TreePath of course see
-                    // comment above selection variable.
-                    TreePath tmp = new TreePath(child.getPath());
-                    if( tmp.toString().equals(selection.toString()) ){
-                        scrollTo = tmp;
-                    }
-                }
-            }
+       //// // Update expanded paths
+       //// en = r2.preorderEnumeration();
+       //// while(en.hasMoreElements()){
+       ////     child = (JtvTreeNode) en.nextElement();
+       ////     file  = (File) child.getUserObject();
+       ////     if( wasMarked.contains( file )){
+       ////         marks.add( child );
+       ////         child.toggleMark();
+       ////     }
+       ////     if( expanded.contains( file )){
+       ////         treePath = new TreePath(child.getPath());
+       ////         tree.expandPath(treePath);
+       ////     }
+       ////     if( selection != null ){
+       ////         // HACK: no equals method for TreePath of course see
+       ////         // comment above selection variable.
+       ////         TreePath tmp = new TreePath(child.getPath());
+       ////         if( tmp.toString().equals(selection.toString()) ){
+       ////             scrollTo = tmp;
+       ////         }
+       ////     }
+       //// }
 
-            // We found a path to scroll/expand to
-            if( scrollTo != null ){
-                tree.setSelectionPath( scrollTo );
-                tree.scrollPathToVisible( scrollTo );
-            }
+       //// // We found a path to scroll/expand to
+       //// if( scrollTo != null ){
+       ////     tree.setSelectionPath( scrollTo );
+       ////     tree.scrollPathToVisible( scrollTo );
+       //// }
         }
 
 
@@ -1371,59 +1477,16 @@ public class Jtv extends JPanel {
         }
 
 
+
         void handleHideToggle(KeyEvent e){
 
             if( (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 ){
-
-                DefaultTreeModel model  = (DefaultTreeModel) tree.getModel();
-                JtvTreeNode child, p, r = (JtvTreeNode) model.getRoot();
-
-                ArrayList<JtvTreeNode> removed = new ArrayList<JtvTreeNode>();
 
                 // Hide
                 if( !isHidden ){
 
                     e.consume();
-
-                    if( marks.size() == 0 ){
-                        log.info("No marks found");
-                        return;
-                    }
-
-                    HashSet<JtvTreeNode> keepers = new HashSet<JtvTreeNode>();
-                    Enumeration<?> en = r.preorderEnumeration();
-                    while(en.hasMoreElements()){
-                        child = (JtvTreeNode) en.nextElement();
-                        if(child.isMarked()){
-                            keepers.add(child);
-                            for(TreeNode tn: child.getPath()){
-                                var tnx = (JtvTreeNode) tn;
-                                keepers.add(tnx);
-                            }
-                        }
-
-                    ////child = (JtvTreeNode) en.nextElement();
-                    ////if( child.isLeaf() &&
-                    ////    !child.isMarked() )
-                    ////{
-                    ////    removed.add( child );
-                    ////}
-                    //////System.out.printf(" n: %s\n", child.getUserObject());
-
-                    }
-
-                    en = r.preorderEnumeration();
-                    while(en.hasMoreElements()){
-                        child = (JtvTreeNode) en.nextElement();
-                        if(! keepers.contains(child) /* && !child.isRoot() */ ){
-                            removed.add( child );
-                        }
-                    }
-
-                    // Tuple<father,son>
-                    for(JtvTreeNode rm: removed){
-                        model.removeNodeFromParent( rm );
-                    }
+                    hideHiddenFiles();
 
                 }else{ // Show off
                     handleRefresh(e);
@@ -1496,5 +1559,179 @@ public class Jtv extends JPanel {
         }
 
     };
+
+
+    void hideHiddenFiles(){
+
+        DefaultTreeModel model  = (DefaultTreeModel) tree.getModel();
+        JtvTreeNode child, p, r = (JtvTreeNode) model.getRoot();
+
+        ArrayList<JtvTreeNode> removed = new ArrayList<JtvTreeNode>();
+
+        if( marks.size() == 0 ){
+            log.info("No marks found");
+            return;
+        }
+
+        HashSet<JtvTreeNode> keepers = new HashSet<JtvTreeNode>();
+        Enumeration<?> en = r.preorderEnumeration();
+        while(en.hasMoreElements()){
+            child = (JtvTreeNode) en.nextElement();
+            if(child.isMarked()){
+                keepers.add(child);
+                for(TreeNode tn: child.getPath()){
+                    var tnx = (JtvTreeNode) tn;
+                    keepers.add(tnx);
+                }
+            }
+
+        ////child = (JtvTreeNode) en.nextElement();
+        ////if( child.isLeaf() &&
+        ////    !child.isMarked() )
+        ////{
+        ////    removed.add( child );
+        ////}
+        //////System.out.printf(" n: %s\n", child.getUserObject());
+
+        }
+
+        en = r.preorderEnumeration();
+        while(en.hasMoreElements()){
+            child = (JtvTreeNode) en.nextElement();
+            if(! keepers.contains(child) /* && !child.isRoot() */ ){
+                removed.add( child );
+            }
+        }
+
+        for(JtvTreeNode rm: removed){
+            // Dangling loose roots here, need to be stored,
+            // when we have an invisible fake root as our Adam
+            var rr = (JtvTreeNode) rm.getParent();
+            if( rr.equals(r) ){
+                detachedRoots.add( rm );
+            }
+            model.removeNodeFromParent( rm );
+        }
+
+    }
+
+
+
+    void refreshFileTree(){
+
+        DefaultTreeModel model   = (DefaultTreeModel) tree.getModel();
+        JtvTreeNode child, r2, n = (JtvTreeNode) model.getRoot();
+
+
+        File file;
+        TreePath treePath, selection, scrollTo = null;
+        ArrayList<File> files = new ArrayList<File>();
+
+        // HACK: The missing equals-method in TreePath makes
+        // this pretty strange, although the horrid Java tree-view
+        // classes and interfaces will always leave this messy,
+        // this is particularly funky where we have to compare
+        // with toString on the objects to see if they are equal.
+        //
+        // Store current location of cursor
+        selection = tree.getSelectionPath();
+
+        // Store list of expanded directories to re-expand
+        HashSet<File> expanded = new HashSet<File>();
+        // Store list of marked nodes to refill
+        HashSet<File> wasMarked = new HashSet<File>();
+
+        // Don't forget marked files
+        if( marks.size() > 0 ){
+            for(JtvTreeNode jtvNode: marks){
+                wasMarked.add( (File) jtvNode.getUserObject() );
+            }
+        }
+
+        // Remember all expanded paths
+        Enumeration<?> en = n.preorderEnumeration();
+        while(en.hasMoreElements()){
+            child = (JtvTreeNode) en.nextElement();
+            treePath = new TreePath(child.getPath());
+            if( !child.isLeaf() && 
+                tree.isExpanded( treePath ) )
+            {
+                expanded.add( (File) child.getUserObject() );
+            }
+        }
+
+
+        // multiple roots
+        if( n.getUserObject() == null ){
+
+            en = n.children();
+            while(en.hasMoreElements()){
+                child = (JtvTreeNode) en.nextElement();
+                file  = (File) child.getUserObject();
+                if( file.isDirectory() ){
+                    files.add( file );
+                }
+            }
+
+            if(detachedRoots.size() > 0){
+                for(JtvTreeNode fr: detachedRoots){
+                    file  = (File) fr.getUserObject();
+                    if( file.isDirectory() ){
+                        files.add( file );
+                    }
+                }
+                detachedRoots.clear();
+            }
+            
+            String[] roots = new String[ files.size() ];
+            int i = 0;
+            for(File f: files){
+                /// roots[i++] = f.getAbsolutePath();
+                roots[i++] = f.getPath();
+            }
+
+            r2 = buildTree( roots );
+
+        } else {
+
+            File orig = (File) n.getUserObject();
+            /// r2 = buildTree( orig.getAbsolutePath() );
+            r2 = buildTree( orig.getPath() );
+        }
+
+        model.setRoot( r2 );
+        marks.clear();
+
+        // Update expanded paths
+        en = r2.preorderEnumeration();
+        while(en.hasMoreElements()){
+            child = (JtvTreeNode) en.nextElement();
+            file  = (File) child.getUserObject();
+            if( wasMarked.contains( file )){
+                marks.add( child );
+                child.toggleMark();
+            }
+            if( expanded.contains( file )){
+                treePath = new TreePath(child.getPath());
+                tree.expandPath(treePath);
+            }
+            if( selection != null ){
+                // HACK: no equals method for TreePath of course see
+                // comment above selection variable.
+                TreePath tmp = new TreePath(child.getPath());
+                if( tmp.toString().equals(selection.toString()) ){
+                    scrollTo = tmp;
+                }
+            }
+        }
+
+        // We found a path to scroll/expand to
+        if( scrollTo != null ){
+            tree.setSelectionPath( scrollTo );
+            tree.scrollPathToVisible( scrollTo );
+        }
+    }
+
+
 
 }

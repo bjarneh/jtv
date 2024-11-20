@@ -57,6 +57,10 @@ public class JtvTextField extends JTextField {
         Pattern.compile("^g(rep)?(:|\\s*)(.+)$");
     private static Pattern pathCmd =
         Pattern.compile("^p(ath)?(:|\\s*)(.+)$");
+    private static Pattern matchCmd =
+        Pattern.compile("^m(atch)?(:|\\s*)(.+)$");
+    private static Pattern interactive =
+        Pattern.compile("^i?(:|\\s+)(.+)$");
 
     private static Timer flashTimer = null;
 
@@ -66,8 +70,10 @@ public class JtvTextField extends JTextField {
     // OP code for different commands
     public static final int NOOP = 0;
     public static final int FONT_SELECT = 1;
-    public static final int FILE_GREP = 2;
-    public static final int PATH_GREP = 3;
+    public static final int FILE_GREP   = 2;
+    public static final int PATH_GREP   = 3;
+    public static final int PATH_MATCH  = 4;
+    public static final int INTERACTIVE = 5;
 
 
     public JtvTextField(){
@@ -110,6 +116,22 @@ public class JtvTextField extends JTextField {
             m = pathCmd.matcher( cmd );
             if( m.matches() ){
                 return new Tuple<Integer,String>(PATH_GREP, m.group(3));
+            }
+            m = matchCmd.matcher( cmd );
+            if( m.matches() ){
+                return new Tuple<Integer,String>(PATH_MATCH, m.group(3));
+            }
+        }
+        return new Tuple<Integer,String>(0, "");
+    }
+
+
+    public Tuple<Integer, String> getInteractive(){
+        String cmd = getText();
+        if( cmd != null ){
+            Matcher m = interactive.matcher( cmd );
+            if( m.matches() ){
+                return new Tuple<Integer,String>(INTERACTIVE, m.group(2));
             }
         }
         return new Tuple<Integer,String>(0, "");

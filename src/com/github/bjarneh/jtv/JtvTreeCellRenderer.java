@@ -68,15 +68,15 @@ public class JtvTreeCellRenderer extends DefaultTreeCellRenderer {
 
 
     public JtvTreeCellRenderer() {
-
         super();
+    }
 
+
+    public void avoidCompilorError(){
         setOpenIcon(res.get().icon("img/dir_open.png"));
         setClosedIcon(res.get().icon("img/dir_close.png"));
         setLeafIcon(null); // to remove leaf icons from this look and feel
-
         setFont( new Font( fontName, fontStyle, fontSize) );
-
     }
 
 

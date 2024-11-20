@@ -19,6 +19,7 @@ package com.github.bjarneh.jtv;
 // std
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -26,6 +27,8 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.awt.Font;
+
+import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.SwingUtilities;
 
@@ -64,7 +67,8 @@ public class Main {
         "  -m --mark  :  mark color: rgb(0,255,0)  \n"+
         "  -n --noxt  :  don't open via xterm      \n"+
         "  -g --geom  :  geometry wxh+x+y          \n"+
-        "  -o --open  :  open with [default: vim]  \n";
+        "  -o --open  :  open with [default: vim]  \n"+
+        "  -a --args  :  arguments for 'open' cmd  \n";
 
     static Pattern whxyPattern =
         Pattern.compile("^(\\d+)x(\\d+)\\+(\\d+)\\+(\\d+)$");
@@ -79,6 +83,7 @@ public class Main {
     static boolean save  = true;
     static int launchX   = -1;
     static int launchY   = -1;
+    static ArrayList<String> extArgs = new ArrayList<>();
     static Getopt getopt = initParser();
 
 
@@ -98,6 +103,7 @@ public class Main {
         getopt.addFancyStrOption("-o --open");
         getopt.addFancyStrOption("-m --mark");
         getopt.addFancyStrOption("-g --geom");
+        getopt.addFancyStrOption("-a --args");
 
         return getopt;
 
@@ -167,6 +173,11 @@ public class Main {
             }
         }
 
+        if( getopt.isSet("-args") ){
+            JtvCmd.addOpenerArgs( getopt.getAll("-args"));
+        }
+
+
         getopt.reset();
 
         return rest;
@@ -202,7 +213,6 @@ public class Main {
             dirs = rest;
         }
 
-
         final JtvTreeNode root = Jtv.buildTree(dirs);
 
 
@@ -210,6 +220,7 @@ public class Main {
 
             // We have our own style, but others can be given
             Jtv.setLookAndFeel( theme );
+            //JFrame.setDefaultLookAndFeelDecorated(true);
 
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {

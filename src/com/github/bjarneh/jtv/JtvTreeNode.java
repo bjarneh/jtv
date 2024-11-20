@@ -98,6 +98,20 @@ public class JtvTreeNode extends DefaultMutableTreeNode
     }
 
 
+    public boolean pathContains(Pattern p){
+        try{
+            File file = (File) getUserObject();
+            if( file != null && file.isFile() ){
+                Matcher m = p.matcher( file.getName() );
+                return m.find();
+            }
+        }catch(Exception e){
+            log.log(Level.WARNING, e.getMessage(), e);
+        }
+        return false;
+    }
+
+
     @Override
     public String toString(){
 

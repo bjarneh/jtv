@@ -17,6 +17,7 @@ package com.github.bjarneh.jtv;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -34,7 +35,7 @@ public class JtvCmd {
     //// Xterm (or alternative term) + arguments for it
     // private static String[] targs = null;
     //// Executable + arguments for it
-    // private static String[] xargs = null;
+    private static ArrayList<String> xargs = null;
 
     static boolean isWindows = false;
 
@@ -72,6 +73,11 @@ public class JtvCmd {
 
     public static void setOpener(String program){
         args[args.length - 2] = program;
+    }
+
+
+    public static void addOpenerArgs(String[] xtraArgs){
+        xargs.addAll(Arrays.asList(xtraArgs));
     }
 
 
