@@ -788,6 +788,7 @@ public class Jtv extends JPanel {
             if(markState != null){
                 restoreMarkState();
             }
+            refreshFileTree();
         }else{
             cmdInput.setVisible(true);
             pane.add(cmdInput, BorderLayout.SOUTH);
